@@ -28,10 +28,10 @@ test('the real GLB raises both hands, holds palms together, and restores every b
   const animation = createMingalarbarAnimation(model)
   const leftRest = point(model, 'hand.L')
   const rightRest = point(model, 'hand.R')
-  animation.apply(1.95)
+  animation.apply(.78)
   assert.ok(point(model, 'hand.L').y > leftRest.y + .5)
   assert.ok(point(model, 'hand.R').y > rightRest.y + .5)
-  animation.apply(3.35)
+  animation.apply(1.08)
   const left = point(model, 'hand.L'), right = point(model, 'hand.R')
   assert.ok(left.distanceTo(right) < .24, 'wrists come together at the chest')
   assert.ok(Math.abs(left.y - right.y) < .01, 'hands remain level')
@@ -40,7 +40,13 @@ test('the real GLB raises both hands, holds palms together, and restores every b
     const direction = point(model, `middle.03.${side}`).sub(point(model, `hand.${side}`)).normalize()
     assert.ok(direction.y > .9, 'fingers point upward')
   }
-  animation.apply(4.2)
+  const head = model.getObjectByName('head')
+  assert.ok(head.quaternion.equals(rest.get(head)), 'head stays upright as demonstrated')
+  for (const side of ['L', 'R']) {
+    const thumb = model.getObjectByName(PropertyBinding.sanitizeNodeName('thumb.01.' + side))
+    assert.ok(!thumb.quaternion.equals(rest.get(thumb)), 'thumbs tuck toward the fingers')
+  }
+  animation.apply(4.07)
   assert.ok(point(model, 'hand.L').distanceTo(left) < .001, 'final pose holds still')
   for (let t = 0; t <= MINGALARBAR_DURATION; t += .025) {
     animation.apply(t)
@@ -49,6 +55,6 @@ test('the real GLB raises both hands, holds palms together, and restores every b
   animation.apply(MINGALARBAR_DURATION)
   for (const [bone, quaternion] of rest) assert.ok(bone.quaternion.equals(quaternion), `${bone.name} returns to rest`)
   assert.ok(point(model, 'hand.L').distanceTo(leftRest) < 1e-5)
-  animation.apply(3.35)
+  animation.apply(1.08)
   assert.ok(point(model, 'hand.R').distanceTo(right) < .001, 'replay reaches the same pose')
 })

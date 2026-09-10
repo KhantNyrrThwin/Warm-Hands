@@ -1,20 +1,20 @@
 import { Bone, Matrix4, Object3D, PropertyBinding, Quaternion, Vector3 } from 'three'
 
-export const MINGALARBAR_DURATION = 6.4
+export const MINGALARBAR_DURATION = 5.05
 
-// Pose references: src/assets/Mingalarpar/1.png through 5.png.
+// Timing and transitions follow the user's video, with idle lead-in/out trimmed.
+// Supplementary pose references: src/assets/Mingalarpar/1.png through 5.png.
 // The supplied GLB is Y-up, facing +Z. This is a reference-based demo, not a validated MSL dataset.
 const poses = [
-  { time: 0, wrist: [1.10, 2.54, 0], direction: [.045, -.27, 0], palm: [0, 0, 1], nod: 0 },
-  { time: .35, wrist: [1.10, 2.54, 0], direction: [.045, -.27, 0], palm: [0, 0, 1], nod: 0 },
-  { time: 1.15, wrist: [.76, 2.96, .43], direction: [-.65, -.76, .02], palm: [0, 0, 1], nod: 0 },
-  { time: 1.95, wrist: [.44, 3.29, .60], direction: [-.96, .28, 0], palm: [0, 0, 1], nod: 0 },
-  { time: 2.8, wrist: [.13, 3.46, .69], direction: [-.13, .99, 0], palm: [-1, 0, .04], nod: 0 },
-  { time: 3.35, wrist: [.108, 3.46, .69], direction: [-.10, .995, 0], palm: [-1, 0, 0], nod: .065 },
-  { time: 4.25, wrist: [.108, 3.46, .69], direction: [-.10, .995, 0], palm: [-1, 0, 0], nod: .065 },
-  { time: 4.8, wrist: [.44, 3.29, .60], direction: [-.96, .28, 0], palm: [0, 0, 1], nod: 0 },
-  { time: 5.55, wrist: [.76, 2.96, .43], direction: [-.65, -.76, .02], palm: [0, 0, 1], nod: 0 },
-  { time: MINGALARBAR_DURATION, wrist: [1.10, 2.54, 0], direction: [.045, -.27, 0], palm: [0, 0, 1], nod: 0 },
+  { time: 0, wrist: [1.10, 2.54, 0], direction: [.045, -.27, 0], palm: [0, 0, 1], gather: 0 },
+  { time: .20, wrist: [1.10, 2.54, 0], direction: [.045, -.27, 0], palm: [0, 0, 1], gather: 0 },
+  { time: .48, wrist: [.65, 2.90, .32], direction: [-.45, .89, 0], palm: [-.85, 0, .53], gather: .5 },
+  { time: .78, wrist: [.21, 3.32, .62], direction: [-.16, .988, 0], palm: [-1, 0, .04], gather: .95 },
+  { time: 1.08, wrist: [.105, 3.46, .69], direction: [-.12, .993, 0], palm: [-1, 0, 0], gather: 1 },
+  { time: 4.08, wrist: [.105, 3.46, .69], direction: [-.12, .993, 0], palm: [-1, 0, 0], gather: 1 },
+  { time: 4.32, wrist: [.21, 3.28, .60], direction: [-.16, .988, 0], palm: [-1, 0, .04], gather: .95 },
+  { time: 4.62, wrist: [.65, 2.87, .31], direction: [-.45, .89, 0], palm: [-.85, 0, .53], gather: .5 },
+  { time: MINGALARBAR_DURATION, wrist: [1.10, 2.54, 0], direction: [.045, -.27, 0], palm: [0, 0, 1], gather: 0 },
 ]
 
 const smoothstep = (x: number) => x * x * (3 - 2 * x)
@@ -48,9 +48,13 @@ export function createMingalarbarAnimation(model: Object3D) {
     const restDirection = new Vector3(sign * .045, -.27, 0).normalize().applyQuaternion(modelRotation)
     const restPalm = new Vector3(0, 0, 1).applyQuaternion(modelRotation)
     const handBasisOffset = basis(restDirection, restPalm).invert().multiply(hand.getWorldQuaternion(new Quaternion()))
-    return { sign, upper, forearm, hand, upperLength: a.distanceTo(b), lowerLength: b.distanceTo(c), handBasisOffset }
+    const fingers = ['index', 'middle', 'ring', 'pinky', 'thumb'].map((name) => ({
+      root: getBone(`${name}.01.${side}`),
+      next: getBone(`${name}.02.${side}`),
+      amount: name === 'thumb' ? .55 : .9,
+    }))
+    return { sign, upper, forearm, hand, fingers, upperLength: a.distanceTo(b), lowerLength: b.distanceTo(c), handBasisOffset }
   })
-  const head = getBone('head')
   const reset = () => {
     for (const [bone, quaternion] of rest) bone.quaternion.copy(quaternion)
     model.updateMatrixWorld(true)
@@ -92,8 +96,15 @@ export function createMingalarbarAnimation(model: Object3D) {
       const qa = basis(vector(a.direction), vector(a.palm))
       const qb = basis(vector(b.direction), vector(b.palm))
       setWorldRotation(arm.hand, modelRotation.clone().multiply(qa.slerp(qb, t)).multiply(arm.handBasisOffset))
+      const gather = a.gather + (b.gather - a.gather) * t
+      const handDirection = new Vector3(0, 1, 0).applyQuaternion(arm.hand.getWorldQuaternion(new Quaternion()))
+      for (const finger of arm.fingers) {
+        const direction = finger.next.getWorldPosition(new Vector3()).sub(finger.root.getWorldPosition(new Vector3())).normalize()
+        const current = finger.root.getWorldQuaternion(new Quaternion())
+        const aligned = new Quaternion().setFromUnitVectors(direction, handDirection).multiply(current)
+        setWorldRotation(finger.root, current.slerp(aligned, gather * finger.amount))
+      }
     }
-    head.quaternion.multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), a.nod + (b.nod - a.nod) * t))
     model.updateMatrixWorld(true)
   }
   return { apply, reset, duration: MINGALARBAR_DURATION }

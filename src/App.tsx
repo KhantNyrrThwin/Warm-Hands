@@ -330,7 +330,7 @@ function App() {
         <img src={logoImg} alt="Logo" className="h-12 md:h-16 drop-shadow-md object-contain" />
       </div>
 
-      {/* The 3D greeting follows the five supplied Mingalarpar pose references. */}
+      {/* The 3D greeting follows the supplied signing video and Mingalarpar pose references. */}
       <div className="character-stage">
         <CharacterViewer active={true} greeting={greetingActive} onGreetingComplete={finishGreeting} onStatusChange={setCharacterStatus} />
       </div>
