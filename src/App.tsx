@@ -1,17 +1,15 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import bgImg from './assets/Main_BG.jpg'
-import mainCharImg from './assets/Main Character.png'
 import logoImg from './assets/LOGO.png'
-import img1 from './assets/Mingalarpar/1.png'
-import img2 from './assets/Mingalarpar/2.png'
-import img3 from './assets/Mingalarpar/3.png'
-import img4 from './assets/Mingalarpar/4.png'
-import img5 from './assets/Mingalarpar/5.png'
+import CharacterViewer from './components/CharacterViewer'
+import { isMingalarbar } from './animation/greetingInput'
 import './App.css'
 
 function App() {
   const [inputText, setInputText] = useState('')
-  const [currentImg, setCurrentImg] = useState(mainCharImg)
+  const [greetingActive, setGreetingActive] = useState(false)
+  const [characterStatus, setCharacterStatus] = useState<'loading' | 'ready' | 'fallback'>('loading')
+  const [playbackMessage, setPlaybackMessage] = useState('')
   const isAnimating = useRef(false)
 
   const [showTimerModal, setShowTimerModal] = useState(false)
@@ -88,7 +86,9 @@ function App() {
       setIsRecording(true)
 
       // Set up silence detection
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const AudioContextConstructor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+      if (!AudioContextConstructor) throw new Error('Audio recording is unavailable in this browser')
+      const audioContext = new AudioContextConstructor()
       audioContextRef.current = audioContext
       const analyser = audioContext.createAnalyser()
       analyserRef.current = analyser
@@ -181,34 +181,27 @@ function App() {
     }
   }, [])
 
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-  const playMingalarparAnimation = async () => {
+  const playMingalarparAnimation = () => {
     if (isAnimating.current) return;
+    if (characterStatus !== 'ready') {
+      setPlaybackMessage(characterStatus === 'loading' ? 'Please wait for the character to load.' : 'The 3D greeting is unavailable in this browser.')
+      return
+    }
     isAnimating.current = true;
-
-    const forwardSequence = [img1, img2, img3, img4, img5]
-    const backwardSequence = [img4, img3, img2, img1, mainCharImg]
-
-    for (const img of forwardSequence) {
-      setCurrentImg(img)
-      await sleep(300)
-    }
-
-    // Hold the final state for 5 seconds
-    await sleep(5000)
-
-    for (const img of backwardSequence) {
-      setCurrentImg(img)
-      await sleep(300)
-    }
-
-    isAnimating.current = false
+    setPlaybackMessage('Playing မင်္ဂလာပါ…')
+    setGreetingActive(true)
   }
+  const finishGreeting = useCallback(() => {
+    setGreetingActive(false)
+    setPlaybackMessage('')
+    isAnimating.current = false
+  }, [])
 
-  const handleSend = async () => {
-    if (inputText.trim() === 'မင်္ဂလာပါ') {
-      await playMingalarparAnimation()
+  const handleSend = () => {
+    if (isMingalarbar(inputText)) {
+      playMingalarparAnimation()
+    } else {
+      setPlaybackMessage('Type မင်္ဂလာပါ to play the greeting.')
     }
   }
   return (
@@ -337,13 +330,9 @@ function App() {
         <img src={logoImg} alt="Logo" className="h-12 md:h-16 drop-shadow-md object-contain" />
       </div>
 
-      {/* Main Character centered, slightly smaller, and shifted slightly lower */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-[10vh] lg:bottom-[12vh] z-0 pointer-events-none flex items-end">
-        <img
-          src={currentImg}
-          alt="Main Character"
-          className="w-auto max-w-[90vw] lg:max-w-[80vw] h-[85vh] object-contain object-bottom drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all"
-        />
+      {/* The 3D greeting follows the five supplied Mingalarpar pose references. */}
+      <div className="character-stage">
+        <CharacterViewer active={true} greeting={greetingActive} onGreetingComplete={finishGreeting} onStatusChange={setCharacterStatus} />
       </div>
 
       {/* Top spacing to push footer down */}
@@ -351,21 +340,25 @@ function App() {
 
       {/* Bottom Section: liquid glass UI more visible from the background */}
       {/* Set to z-10 so the main character physically sits under this panel */}
-      <div className="w-full h-[25vh] bg-[#f3f2f2]/40 backdrop-blur-xl shadow-[0_-8px_30px_rgba(0,0,0,0.1)] border-t border-white/50 flex items-center justify-center px-4 md:px-12 gap-6 pb-4 sm:pb-0 z-10 transition-all pointer-events-auto">
+      <div className="input-panel w-full h-[25vh] bg-[#f3f2f2]/40 backdrop-blur-xl shadow-[0_-8px_30px_rgba(0,0,0,0.1)] border-t border-white/50 flex items-center justify-center px-4 md:px-12 gap-6 pb-4 sm:pb-0 z-10 transition-all pointer-events-auto">
 
         {/* Left: Text Box */}
-        <div className="relative w-full max-w-3xl h-[75%] md:h-[65%] bg-white/70 backdrop-blur-2xl rounded-2xl border-2 border-[#ff7a00] shadow-sm flex flex-col transition-all">
+        <div className="message-box relative w-full max-w-3xl h-[75%] md:h-[65%] bg-white/70 backdrop-blur-2xl rounded-2xl border-2 border-[#ff7a00] shadow-sm flex flex-col transition-all">
           <textarea
+            aria-label="Text to translate"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             className="w-full h-full bg-transparent resize-none p-5 outline-none text-black text-lg placeholder:text-gray-600 rounded-2xl pb-16 font-medium [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
             placeholder="Change your text into sign language"
           ></textarea>
+          <p className="absolute bottom-4 left-5 right-20 text-xs text-amber-900" role="status">{playbackMessage}</p>
 
           {/* Orange Send Button at right bottom */}
           <button
             onClick={handleSend}
-            className="cursor-pointer absolute right-3 bottom-3 bg-[#ff7a00] hover:bg-[#e66f00] transition-all p-3 rounded-full flex items-center justify-center shadow-lg active:scale-95 border border-[#ff7a00]"
+            aria-label="Play greeting"
+            disabled={greetingActive || characterStatus !== 'ready'}
+            className="cursor-pointer absolute right-3 bottom-3 bg-[#ff7a00] hover:bg-[#e66f00] transition-all p-3 rounded-full flex items-center justify-center shadow-lg active:scale-95 border border-[#ff7a00] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {/* Send Icon in white/gray color */}
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f3f4f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="translate-x-[-1px] translate-y-[1px]">
@@ -376,7 +369,7 @@ function App() {
         </div>
 
         {/* Right: Two Buttons */}
-        <div className="flex flex-col gap-3 w-56 md:w-64">
+        <div className="input-actions flex flex-col gap-3 w-56 md:w-64">
           {/* Input Sign Language Button: white bg, orange text */}
           <button
             onClick={() => setShowTimerModal(true)}
