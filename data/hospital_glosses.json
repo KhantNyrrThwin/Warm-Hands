@@ -1,0 +1,402 @@
+[
+  {
+    "gloss": "drink",
+    "samples": 35
+  },
+  {
+    "gloss": "go",
+    "samples": 26
+  },
+  {
+    "gloss": "who",
+    "samples": 25
+  },
+  {
+    "gloss": "deaf",
+    "samples": 23
+  },
+  {
+    "gloss": "help",
+    "samples": 22
+  },
+  {
+    "gloss": "no",
+    "samples": 22
+  },
+  {
+    "gloss": "walk",
+    "samples": 22
+  },
+  {
+    "gloss": "yes",
+    "samples": 22
+  },
+  {
+    "gloss": "finish",
+    "samples": 21
+  },
+  {
+    "gloss": "hot",
+    "samples": 21
+  },
+  {
+    "gloss": "mother",
+    "samples": 21
+  },
+  {
+    "gloss": "now",
+    "samples": 21
+  },
+  {
+    "gloss": "what",
+    "samples": 21
+  },
+  {
+    "gloss": "bed",
+    "samples": 20
+  },
+  {
+    "gloss": "family",
+    "samples": 20
+  },
+  {
+    "gloss": "hearing",
+    "samples": 20
+  },
+  {
+    "gloss": "accident",
+    "samples": 19
+  },
+  {
+    "gloss": "doctor",
+    "samples": 19
+  },
+  {
+    "gloss": "eat",
+    "samples": 19
+  },
+  {
+    "gloss": "meet",
+    "samples": 19
+  },
+  {
+    "gloss": "time",
+    "samples": 19
+  },
+  {
+    "gloss": "want",
+    "samples": 19
+  },
+  {
+    "gloss": "how",
+    "samples": 18
+  },
+  {
+    "gloss": "medicine",
+    "samples": 18
+  },
+  {
+    "gloss": "need",
+    "samples": 18
+  },
+  {
+    "gloss": "paper",
+    "samples": 18
+  },
+  {
+    "gloss": "right",
+    "samples": 18
+  },
+  {
+    "gloss": "tell",
+    "samples": 18
+  },
+  {
+    "gloss": "visit",
+    "samples": 18
+  },
+  {
+    "gloss": "wait",
+    "samples": 18
+  },
+  {
+    "gloss": "water",
+    "samples": 18
+  },
+  {
+    "gloss": "check",
+    "samples": 17
+  },
+  {
+    "gloss": "headache",
+    "samples": 17
+  },
+  {
+    "gloss": "inform",
+    "samples": 17
+  },
+  {
+    "gloss": "room",
+    "samples": 17
+  },
+  {
+    "gloss": "sick",
+    "samples": 17
+  },
+  {
+    "gloss": "why",
+    "samples": 17
+  },
+  {
+    "gloss": "write",
+    "samples": 17
+  },
+  {
+    "gloss": "bad",
+    "samples": 16
+  },
+  {
+    "gloss": "bathroom",
+    "samples": 16
+  },
+  {
+    "gloss": "call",
+    "samples": 16
+  },
+  {
+    "gloss": "cold",
+    "samples": 16
+  },
+  {
+    "gloss": "good",
+    "samples": 16
+  },
+  {
+    "gloss": "late",
+    "samples": 16
+  },
+  {
+    "gloss": "name",
+    "samples": 16
+  },
+  {
+    "gloss": "problem",
+    "samples": 16
+  },
+  {
+    "gloss": "test",
+    "samples": 16
+  },
+  {
+    "gloss": "tired",
+    "samples": 16
+  },
+  {
+    "gloss": "you",
+    "samples": 16
+  },
+  {
+    "gloss": "children",
+    "samples": 15
+  },
+  {
+    "gloss": "feel",
+    "samples": 15
+  },
+  {
+    "gloss": "hear",
+    "samples": 15
+  },
+  {
+    "gloss": "here",
+    "samples": 15
+  },
+  {
+    "gloss": "please",
+    "samples": 15
+  },
+  {
+    "gloss": "sign",
+    "samples": 15
+  },
+  {
+    "gloss": "where",
+    "samples": 15
+  },
+  {
+    "gloss": "your",
+    "samples": 15
+  },
+  {
+    "gloss": "baby",
+    "samples": 14
+  },
+  {
+    "gloss": "back",
+    "samples": 14
+  },
+  {
+    "gloss": "cough",
+    "samples": 14
+  },
+  {
+    "gloss": "father",
+    "samples": 14
+  },
+  {
+    "gloss": "glasses",
+    "samples": 14
+  },
+  {
+    "gloss": "heart",
+    "samples": 14
+  },
+  {
+    "gloss": "hour",
+    "samples": 14
+  },
+  {
+    "gloss": "nurse",
+    "samples": 14
+  },
+  {
+    "gloss": "ok",
+    "samples": 14
+  },
+  {
+    "gloss": "patient",
+    "samples": 14
+  },
+  {
+    "gloss": "pay",
+    "samples": 14
+  },
+  {
+    "gloss": "sleep",
+    "samples": 14
+  },
+  {
+    "gloss": "sorry",
+    "samples": 14
+  },
+  {
+    "gloss": "temperature",
+    "samples": 14
+  },
+  {
+    "gloss": "thank you",
+    "samples": 14
+  },
+  {
+    "gloss": "today",
+    "samples": 14
+  },
+  {
+    "gloss": "understand",
+    "samples": 14
+  },
+  {
+    "gloss": "vomit",
+    "samples": 14
+  },
+  {
+    "gloss": "when",
+    "samples": 14
+  },
+  {
+    "gloss": "age",
+    "samples": 13
+  },
+  {
+    "gloss": "appointment",
+    "samples": 13
+  },
+  {
+    "gloss": "better",
+    "samples": 13
+  },
+  {
+    "gloss": "blind",
+    "samples": 13
+  },
+  {
+    "gloss": "child",
+    "samples": 13
+  },
+  {
+    "gloss": "dentist",
+    "samples": 13
+  },
+  {
+    "gloss": "ear",
+    "samples": 13
+  },
+  {
+    "gloss": "explain",
+    "samples": 13
+  },
+  {
+    "gloss": "hello",
+    "samples": 13
+  },
+  {
+    "gloss": "hospital",
+    "samples": 13
+  },
+  {
+    "gloss": "minute",
+    "samples": 13
+  },
+  {
+    "gloss": "phone",
+    "samples": 13
+  },
+  {
+    "gloss": "ready",
+    "samples": 13
+  },
+  {
+    "gloss": "sit",
+    "samples": 13
+  },
+  {
+    "gloss": "soap",
+    "samples": 13
+  },
+  {
+    "gloss": "surgery",
+    "samples": 13
+  },
+  {
+    "gloss": "tomorrow",
+    "samples": 13
+  },
+  {
+    "gloss": "asl",
+    "samples": 12
+  },
+  {
+    "gloss": "face",
+    "samples": 12
+  },
+  {
+    "gloss": "food",
+    "samples": 12
+  },
+  {
+    "gloss": "form",
+    "samples": 12
+  },
+  {
+    "gloss": "hungry",
+    "samples": 12
+  },
+  {
+    "gloss": "hurt",
+    "samples": 12
+  },
+  {
+    "gloss": "my",
+    "samples": 12
+  }
+]

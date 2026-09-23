@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:ai": "server\\run.bat",
+    "dev:all": "powershell -ExecutionPolicy Bypass -File start-dev.ps1",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test": "bun test ./tests/greeting.test.mjs",

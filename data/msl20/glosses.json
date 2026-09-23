@@ -1,0 +1,22 @@
+[
+  {"id": "hello", "en": "hello", "my": "မင်္ဂလာပါ"},
+  {"id": "thank_you", "en": "thank you", "my": "ကျေးဇူးတင်ပါတယ်"},
+  {"id": "yes", "en": "yes", "my": "ဟုတ်ကဲ့"},
+  {"id": "no", "en": "no", "my": "မဟုတ်ပါ"},
+  {"id": "help", "en": "help", "my": "ကူညီပါ"},
+  {"id": "doctor", "en": "doctor", "my": "ဆရာဝန်"},
+  {"id": "hospital", "en": "hospital", "my": "ဆေးရုံ"},
+  {"id": "pain", "en": "pain", "my": "နာကျင်"},
+  {"id": "medicine", "en": "medicine", "my": "ဆေး"},
+  {"id": "water", "en": "water", "my": "ရေ"},
+  {"id": "eat", "en": "eat", "my": "စား"},
+  {"id": "drink", "en": "drink", "my": "သောက်"},
+  {"id": "toilet", "en": "toilet", "my": "အိမ်သာ"},
+  {"id": "name", "en": "name", "my": "နာမည်"},
+  {"id": "me", "en": "me", "my": "ကျွန်တော်"},
+  {"id": "you", "en": "you", "my": "သင်"},
+  {"id": "sick", "en": "sick", "my": "ဖျား"},
+  {"id": "mother", "en": "mother", "my": "အမေ"},
+  {"id": "father", "en": "father", "my": "အဖေ"},
+  {"id": "please", "en": "please", "my": "ကျေးဇူးပြု"}
+]

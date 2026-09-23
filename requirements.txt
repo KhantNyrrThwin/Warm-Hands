@@ -1,0 +1,11 @@
+numpy
+opencv-python
+PyQt5
+mediapipe
+torch
+huggingface_hub
+fastapi
+uvicorn
+websockets
+python-multipart
+language-tool-python

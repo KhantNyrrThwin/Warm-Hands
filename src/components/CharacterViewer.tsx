@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Group, Material, Mesh, Texture, WebGLRenderer } from 'three'
-import fallbackImage from '../assets/Main Character.png'
+import fallbackImage from '../assets/WarmHands_Traditional_Fallback.png'
 import './CharacterViewer.css'
 
 type Props = {
   active: boolean
-  greeting?: boolean
-  onGreetingComplete?: () => void
+  sign?: string | null
+  sequence?: string[] | null
+  sequenceToken?: number
+  onSignComplete?: () => void
   onStatusChange?: (status: 'loading' | 'ready' | 'fallback') => void
 }
 
@@ -14,7 +16,7 @@ type Props = {
 const loadThree = () => Promise.all([
   import('three'),
   import('three/addons/loaders/GLTFLoader.js'),
-  import('../animation/mingalarbar'),
+  import('../animation/signs'),
 ])
 
 function disposeModel(model: Group) {
@@ -35,16 +37,20 @@ function disposeModel(model: Group) {
   materials.forEach((material) => material.dispose())
 }
 
-export default function CharacterViewer({ active, greeting = false, onGreetingComplete, onStatusChange }: Props) {
+export default function CharacterViewer({ active, sign = null, sequence = null, sequenceToken = 0, onSignComplete, onStatusChange }: Props) {
   const hostRef = useRef<HTMLDivElement>(null)
   const activeRef = useRef(active)
-  const greetingRef = useRef(greeting)
-  const completedRef = useRef(onGreetingComplete)
+  const signRef = useRef(sign)
+  const sequenceRef = useRef(sequence)
+  const tokenRef = useRef(sequenceToken)
+  const completedRef = useRef(onSignComplete)
   const [status, setStatus] = useState<'loading' | 'ready' | 'fallback'>('loading')
 
   useEffect(() => { activeRef.current = active }, [active])
-  useEffect(() => { greetingRef.current = greeting }, [greeting])
-  useEffect(() => { completedRef.current = onGreetingComplete }, [onGreetingComplete])
+  useEffect(() => { signRef.current = sign }, [sign])
+  useEffect(() => { sequenceRef.current = sequence }, [sequence])
+  useEffect(() => { tokenRef.current = sequenceToken }, [sequenceToken])
+  useEffect(() => { completedRef.current = onSignComplete }, [onSignComplete])
   useEffect(() => { onStatusChange?.(status) }, [status, onStatusChange])
 
   useEffect(() => {
@@ -68,12 +74,12 @@ export default function CharacterViewer({ active, greeting = false, onGreetingCo
       renderer?.dispose()
       renderer?.domElement.remove()
       setStatus('fallback')
-      if (greetingRef.current) completedRef.current?.()
+      if (signRef.current) completedRef.current?.()
     }
     const onContextLost = (event: Event) => { event.preventDefault(); fail() }
 
     async function start() {
-      const [THREE, { GLTFLoader }, { createMingalarbarAnimation }] = await loadThree()
+      const [THREE, { GLTFLoader }, { createSignLibrary }] = await loadThree()
       if (disposed) return
       renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' })
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5))
@@ -87,8 +93,6 @@ export default function CharacterViewer({ active, greeting = false, onGreetingCo
 
       const scene = new THREE.Scene()
       const camera = new THREE.OrthographicCamera(-2, 2, 3.5, -3.5, 0.1, 100)
-      camera.position.set(0, 0, 12)
-      camera.lookAt(0, 0, 0)
       scene.add(new THREE.HemisphereLight(0xfff4df, 0x8a827a, 2.5))
       const key = new THREE.DirectionalLight(0xffecd6, 3)
       key.position.set(-3, 5, 6)
@@ -106,9 +110,14 @@ export default function CharacterViewer({ active, greeting = false, onGreetingCo
       const size = bounds.getSize(new THREE.Vector3())
       const center = bounds.getCenter(new THREE.Vector3())
       model.position.sub(center)
+      const targetY = size.y * 0.12
+      camera.position.set(0, targetY, 12)
+      camera.lookAt(0, targetY, 0)
+      key.position.set(-3, 5 + targetY, 6)
+      fill.position.set(4, 2 + targetY, 3)
       scene.add(model)
 
-      const greetingAnimation = createMingalarbarAnimation(model)
+      const library = createSignLibrary(model)
 
       // A matching blink target occurs on the white, iris, pupil and eyelids.
       const blinkTargets: Array<{ mesh: Mesh; index: number }> = []
@@ -126,7 +135,7 @@ export default function CharacterViewer({ active, greeting = false, onGreetingCo
         const height = host!.clientHeight
         if (!width || !height) return
         const aspect = width / height
-        const halfHeight = Math.max(size.y * 0.535, size.x * 0.57 / aspect)
+        const halfHeight = Math.max(size.y * 0.40, size.x * 0.48 / aspect)
         camera.left = -halfHeight * aspect
         camera.right = halfHeight * aspect
         camera.top = halfHeight
@@ -141,9 +150,25 @@ export default function CharacterViewer({ active, greeting = false, onGreetingCo
       setStatus('ready')
 
       let lastFrame = 0
-      let wasRequested = false
+      let wasRequested: string | null = null
       let playing = false
       let elapsed = 0
+      let current = library.hello
+      let sequenceMode = false
+      let queue: string[] = []
+      let queueIndex = 0
+      let seenToken = 0
+
+      const beginClip = (id: string) => {
+        const next = library[id as keyof typeof library]
+        if (!next) return false
+        current.reset()
+        current = next
+        playing = true
+        elapsed = 0
+        host!.dataset.sign = id
+        return true
+      }
 
       const render = (now: number) => {
         if (disposed || failed) return
@@ -152,18 +177,41 @@ export default function CharacterViewer({ active, greeting = false, onGreetingCo
         if (now - lastFrame < 1000 / 30) return
         const delta = lastFrame ? Math.min((now - lastFrame) / 1000, .1) : 0
         lastFrame = now
-        const requested = greetingRef.current
-        if (requested && !wasRequested) { playing = true; elapsed = 0 }
-        if (!requested && wasRequested) { playing = false; greetingAnimation.reset() }
-        wasRequested = requested
+        const token = tokenRef.current
+        if (token !== seenToken) {
+          seenToken = token
+          const seq = sequenceRef.current
+          if (seq && seq.length) {
+            sequenceMode = true
+            queue = seq
+            queueIndex = 0
+            wasRequested = null
+            beginClip(queue[0])
+          }
+        }
+        if (!sequenceMode) {
+          const requested = signRef.current
+          if (requested && requested !== wasRequested) beginClip(requested)
+          if (!requested && wasRequested) { playing = false; current.idle() }
+          wasRequested = requested
+        }
         if (playing) {
           elapsed += delta
-          greetingAnimation.apply(elapsed)
+          current.apply(elapsed)
           host!.dataset.greetingTime = elapsed.toFixed(2)
-          if (elapsed >= greetingAnimation.duration) {
-            playing = false
-            completedRef.current?.()
+          if (elapsed >= current.duration) {
+            if (sequenceMode && queueIndex + 1 < queue.length) {
+              queueIndex += 1
+              beginClip(queue[queueIndex])
+            } else {
+              playing = false
+              sequenceMode = false
+              current.idle()
+              completedRef.current?.()
+            }
           }
+        } else {
+          current.idle()
         }
         const phase = now / 1000 % 5.4
         const blink = !motion.matches && phase > 5.12 ? Math.sin((phase - 5.12) / 0.28 * Math.PI) : 0
@@ -196,7 +244,7 @@ export default function CharacterViewer({ active, greeting = false, onGreetingCo
 
   return (
     <div className="character-viewer" hidden={!active} data-status={status}>
-      <div ref={hostRef} className="character-canvas" role="img" aria-label="Warm Hands character with brown hair, an orange shirt and tan shorts" />
+      <div ref={hostRef} className="character-canvas" role="img" aria-label="Warm Hands character with brown hair, a white traditional Burmese shirt and golden longyi" />
       {status !== 'ready' && <img className="character-fallback" src={fallbackImage} alt="Warm Hands character" />}
       <span className={status === 'ready' ? 'sr-only' : 'character-status'} role="status">
         {status === 'loading' ? 'Loading character…' : status === 'fallback' ? 'Showing character image. 3D view is unavailable.' : 'Character ready'}

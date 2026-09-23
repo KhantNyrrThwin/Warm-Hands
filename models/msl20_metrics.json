@@ -1,0 +1,427 @@
+{
+  "checkpoint": "D:\\WH\\models\\msl20_bilstm.npz",
+  "is_msl": true,
+  "stored": {
+    "val_top1": 0.8125,
+    "val_top5": 0.9583333333333334,
+    "train_top1": 0.9935897435897436
+  },
+  "train": {
+    "n": 156,
+    "num_classes": 20,
+    "accuracy": 0.9935897435897436,
+    "macro_f1": 0.9950900163666121,
+    "weighted_f1": 0.9937680976960847,
+    "per_class": [
+      {
+        "gloss": "မင်္ဂလာပါ  (hello)",
+        "precision": 1.0,
+        "recall": 0.9583333333333334,
+        "f1": 0.9787234042553191,
+        "support": 24,
+        "tp": 23,
+        "fp": 0,
+        "fn": 1
+      },
+      {
+        "gloss": "ကျေးဇူးတင်ပါတယ်  (thank you)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 24,
+        "tp": 24,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ဟုတ်ကဲ့  (yes)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "မဟုတ်ပါ  (no)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ကူညီပါ  (help)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ဆရာဝန်  (doctor)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ဆေးရုံ  (hospital)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "နာကျင်  (pain)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ဆေး  (medicine)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ရေ  (water)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "စား  (eat)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "သောက်  (drink)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "အိမ်သာ  (toilet)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "နာမည်  (name)",
+        "precision": 0.8571428571428571,
+        "recall": 1.0,
+        "f1": 0.923076923076923,
+        "support": 6,
+        "tp": 6,
+        "fp": 1,
+        "fn": 0
+      },
+      {
+        "gloss": "ကျွန်တော်  (me)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "သင်  (you)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ဖျား  (sick)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "အမေ  (mother)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "အဖေ  (father)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ကျေးဇူးပြု  (please)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      }
+    ]
+  },
+  "val": {
+    "n": 48,
+    "num_classes": 20,
+    "accuracy": 0.8125,
+    "macro_f1": 0.7511538461538462,
+    "weighted_f1": 0.7862179487179488,
+    "per_class": [
+      {
+        "gloss": "မင်္ဂလာပါ  (hello)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ကျေးဇူးတင်ပါတယ်  (thank you)",
+        "precision": 0.8571428571428571,
+        "recall": 1.0,
+        "f1": 0.923076923076923,
+        "support": 6,
+        "tp": 6,
+        "fp": 1,
+        "fn": 0
+      },
+      {
+        "gloss": "ဟုတ်ကဲ့  (yes)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "မဟုတ်ပါ  (no)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ကူညီပါ  (help)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ဆရာဝန်  (doctor)",
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666,
+        "support": 2,
+        "tp": 2,
+        "fp": 2,
+        "fn": 0
+      },
+      {
+        "gloss": "ဆေးရုံ  (hospital)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "နာကျင်  (pain)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ဆေး  (medicine)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ရေ  (water)",
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 2,
+        "tp": 0,
+        "fp": 1,
+        "fn": 2
+      },
+      {
+        "gloss": "စား  (eat)",
+        "precision": 0.6666666666666666,
+        "recall": 1.0,
+        "f1": 0.8,
+        "support": 2,
+        "tp": 2,
+        "fp": 1,
+        "fn": 0
+      },
+      {
+        "gloss": "သောက်  (drink)",
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 2,
+        "tp": 0,
+        "fp": 1,
+        "fn": 2
+      },
+      {
+        "gloss": "အိမ်သာ  (toilet)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "နာမည်  (name)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ကျွန်တော်  (me)",
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6666666666666666,
+        "support": 2,
+        "tp": 1,
+        "fp": 0,
+        "fn": 1
+      },
+      {
+        "gloss": "သင်  (you)",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      {
+        "gloss": "ဖျား  (sick)",
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 2,
+        "tp": 0,
+        "fp": 1,
+        "fn": 2
+      },
+      {
+        "gloss": "အမေ  (mother)",
+        "precision": 0.5,
+        "recall": 0.5,
+        "f1": 0.5,
+        "support": 2,
+        "tp": 1,
+        "fp": 1,
+        "fn": 1
+      },
+      {
+        "gloss": "အဖေ  (father)",
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6666666666666666,
+        "support": 2,
+        "tp": 1,
+        "fp": 0,
+        "fn": 1
+      },
+      {
+        "gloss": "ကျေးဇူးပြု  (please)",
+        "precision": 0.6666666666666666,
+        "recall": 1.0,
+        "f1": 0.8,
+        "support": 2,
+        "tp": 2,
+        "fp": 1,
+        "fn": 0
+      }
+    ]
+  }
+}

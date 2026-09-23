@@ -11,6 +11,16 @@ node_modules
 dist
 dist-ssr
 *.local
+__pycache__/
+*.py[cod]
+server/.venv/
+.venv/
+venv/
+data/videos/
+data/landmarks/
+*.pt
+WLASL_v0.3.json
+WLASL_v0.3.json.zip
 
 # Editor directories and files
 .vscode/*
