@@ -18,9 +18,12 @@ server/.venv/
 venv/
 data/videos/
 data/landmarks/
+data/international5/
+data/myanmar5/
 *.pt
 WLASL_v0.3.json
 WLASL_v0.3.json.zip
+manual-assets.zip
 
 # Editor directories and files
 .vscode/*

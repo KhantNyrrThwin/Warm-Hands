@@ -19,9 +19,11 @@ import uvicorn
 from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
-from sign_app.classifier import SignClassifier, active_checkpoint, available as model_available
+from sign_app.classifier import SignClassifier
+from sign_app.languages import get_profile
+from sign_app.msl_dataset import display_name
 from sign_app.features import CLIP_SECONDS, FEATURE_SIZE
-from sign_app.grammar import correct_labels
+from sign_app.myanmar_grammar import correct_myanmar as correct_labels
 from sign_app.landmarks import LandmarkTracker
 from sign_app.live import LiveTranslator
 from sign_app.phrase import recognize_phrase, split_gloss
@@ -38,8 +40,8 @@ app.add_middleware(
 
 _lock = threading.Lock()
 _tracker: LandmarkTracker | None = None
-_classifier: SignClassifier | None = None
 _load_error = ""
+_classifiers: dict[str, SignClassifier] = {}
 MAX_INFER_FRAMES = 24
 
 
@@ -53,13 +55,9 @@ def _parse_label(label: str) -> dict:
 
 
 def _startup() -> None:
-    global _tracker, _classifier, _load_error
+    global _tracker, _load_error
     try:
         ensure_assets()
-        if not model_available():
-            _load_error = f"No LSTM checkpoint in {WH_ROOT / 'models'}. Run data_collection.py --import-data, then model.py."
-            return
-        _classifier = SignClassifier()
         _tracker = LandmarkTracker()
         try:
             correct_labels(["hello"])
@@ -75,14 +73,29 @@ def on_startup() -> None:
     _startup()
 
 
-def _require_ready() -> tuple[LandmarkTracker, SignClassifier]:
-    if _load_error or _tracker is None or _classifier is None:
-        raise HTTPException(status_code=503, detail=_load_error or "AI model is not ready.")
-    return _tracker, _classifier
+def _require_ready(language: str = "myanmar") -> tuple[LandmarkTracker, SignClassifier]:
+    try:
+        profile = get_profile(language)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if _load_error or _tracker is None:
+        raise HTTPException(status_code=503, detail=_load_error or "Camera tracker is not ready.")
+    if not profile.checkpoint.exists():
+        raise HTTPException(status_code=503, detail=f"No trained {language} model. Record data, then run: python model.py --live --language {language}")
+    with _lock:
+        if language not in _classifiers:
+            classifier = SignClassifier(profile.checkpoint)
+            expected = [display_name(item) for item in profile.glosses()]
+            if classifier.glosses != expected:
+                raise HTTPException(status_code=503, detail=f"Retrain {language}: checkpoint classes do not match the five signs.")
+            _classifiers[language] = classifier
+    return _tracker, _classifiers[language]
 
 
 def _live_step(session: LiveTranslator, data: bytes) -> dict:
-    tracker, _classifier = _require_ready()
+    tracker = _tracker
+    if tracker is None:
+        raise RuntimeError("Camera tracker is not ready.")
     rgb = _decode_image(data)
     if rgb is None:
         return session.snapshot(hands=False)
@@ -95,22 +108,34 @@ def _live_step(session: LiveTranslator, data: bytes) -> dict:
 
 
 @app.websocket("/api/live")
-async def live(socket: WebSocket) -> None:
+async def live(socket: WebSocket, language: str = "myanmar") -> None:
     await socket.accept()
-    if _load_error or _tracker is None or _classifier is None:
-        await socket.send_json({"error": _load_error or "AI model is not ready."})
+    try:
+        _, classifier = _require_ready(language)
+    except HTTPException as exc:
+        await socket.send_json({"error": exc.detail})
         await socket.close()
         return
-    session = LiveTranslator(_classifier)
+    session = LiveTranslator(classifier)
     try:
         while True:
-            message = await socket.receive()
+            try:
+                message = await asyncio.wait_for(socket.receive(), timeout=0.5)
+            except asyncio.TimeoutError:
+                payload = session.check_idle()
+                await socket.send_json(payload)
+                if payload["completed"]:
+                    return
+                continue
             if message.get("type") == "websocket.disconnect":
                 break
             text = message.get("text")
             if text == "reset":
                 await socket.send_json(session.reset())
                 continue
+            if text == "complete":
+                await socket.send_json(session.complete())
+                return
             data = message.get("bytes")
             if not data:
                 continue
@@ -119,31 +144,24 @@ async def live(socket: WebSocket) -> None:
             except Exception as exc:  # noqa: BLE001
                 payload = {**session.snapshot(hands=False), "error": str(exc)}
             await socket.send_json(payload)
+            if payload.get("completed"):
+                return
     except WebSocketDisconnect:
         return
 
 
 @app.get("/api/health")
-def health() -> dict:
-    ready = _tracker is not None and _classifier is not None and not _load_error
-    payload: dict = {
-        "ok": ready,
-        "clip_seconds": CLIP_SECONDS,
-        "wh_root": str(WH_ROOT),
-        "error": _load_error or None,
-    }
-    if _classifier is not None:
-        payload.update(
-            {
-                "model": _classifier.path.name,
-                "is_msl": _classifier.is_msl,
-                "glosses": [_parse_label(name) for name in _classifier.glosses],
-                "metrics": _classifier.metrics,
-            }
-        )
-    else:
-        payload["checkpoint"] = str(active_checkpoint())
-    return payload
+def health(language: str = "myanmar") -> dict:
+    try:
+        _, classifier = _require_ready(language)
+        return {"ok": True, "clip_seconds": CLIP_SECONDS, "language": language,
+                "model": classifier.path.name, "is_msl": classifier.is_msl,
+                "glosses": [_parse_label(name) for name in classifier.glosses],
+                "metrics": classifier.metrics, "error": None}
+    except HTTPException as exc:
+        if exc.status_code == 400:
+            raise
+        return {"ok": False, "clip_seconds": CLIP_SECONDS, "language": language, "error": exc.detail}
 
 
 def _decode_image(data: bytes) -> np.ndarray | None:
@@ -188,8 +206,8 @@ def _shrink(rgb: np.ndarray, max_width: int = 320) -> np.ndarray:
     return cv2.resize(rgb, (max_width, max(1, int(height * scale))), interpolation=cv2.INTER_AREA)
 
 
-def _predict_rgb_frames(frames: list[np.ndarray]) -> dict:
-    tracker, classifier = _require_ready()
+def _predict_rgb_frames(frames: list[np.ndarray], language: str = "myanmar") -> dict:
+    tracker, classifier = _require_ready(language)
     frames = [_shrink(frame) for frame in _even_sample(frames, MAX_INFER_FRAMES)]
     if len(frames) < 8:
         raise HTTPException(status_code=400, detail="Clip too short. Please sign for the full 5 seconds.")
@@ -243,6 +261,8 @@ def _predict_rgb_frames(frames: list[np.ndarray]) -> dict:
         grammar = correct_labels([ranked[0][0]])
     return {
         **top,
+        "text": grammar,
+        "myanmar": grammar,
         "confidence": confidence,
         "hands_ratio": hands / max(len(features), 1),
         "frame_count": len(features),
@@ -255,6 +275,7 @@ def _predict_rgb_frames(frames: list[np.ndarray]) -> dict:
 
 @app.post("/api/recognize")
 async def recognize(
+    language: str = "myanmar",
     frames: list[UploadFile] = File(default=[]),
     video: UploadFile | None = File(default=None),
 ) -> dict:
@@ -268,7 +289,7 @@ async def recognize(
         rgb_frames = _decode_video(await video.read())
     if not rgb_frames:
         raise HTTPException(status_code=400, detail="Send JPEG frames from the 5-second recording.")
-    return _predict_rgb_frames(rgb_frames)
+    return _predict_rgb_frames(rgb_frames, language)
 
 
 if __name__ == "__main__":

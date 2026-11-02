@@ -5,6 +5,7 @@ import './CharacterViewer.css'
 
 type Props = {
   active: boolean
+  language?: 'myanmar' | 'international' | null
   sign?: string | null
   sequence?: string[] | null
   sequenceToken?: number
@@ -247,7 +248,7 @@ export default function CharacterViewer({ active, sign = null, sequence = null, 
       <div ref={hostRef} className="character-canvas" role="img" aria-label="Warm Hands character with brown hair, a white traditional Burmese shirt and golden longyi" />
       {status !== 'ready' && <img className="character-fallback" src={fallbackImage} alt="Warm Hands character" />}
       <span className={status === 'ready' ? 'sr-only' : 'character-status'} role="status">
-        {status === 'loading' ? 'Loading character…' : status === 'fallback' ? 'Showing character image. 3D view is unavailable.' : 'Character ready'}
+        {status === 'loading' ? 'ဇာတ်ကောင်ပြင်ဆင်နေသည်…' : status === 'fallback' ? '3D မရနိုင်သဖြင့် ပုံကို ပြထားပါသည်။' : 'ဇာတ်ကောင် အဆင်သင့်ဖြစ်ပါပြီ'}
       </span>
     </div>
   )

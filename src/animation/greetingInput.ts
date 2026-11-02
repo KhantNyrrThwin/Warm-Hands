@@ -4,11 +4,14 @@ const clean = (text: string) =>
   text.normalize('NFC').replace(/[\u200B-\u200D\uFEFF]/g, '').trim()
 
 const SIGN_TEXT: Record<SignId, string[]> = {
-  hello: ['မင်္ဂလာပါ', 'hello'],
+  headache: ['ခေါင်းကိုက်', 'ခေါင်းကိုက်ပါ', 'headache'],
+  i: ['ကျွန်တော်', 'ကျွန်ုပ်', 'ကျွန်မ', 'i'],
+  hello: ['မင်္ဂလာပါ', 'hello', 'mingalarbar'],
   thank_you: ['ကျေးဇူးတင်ပါတယ်', 'thank you', 'thank_you'],
   please: ['ကျေးဇူးပြု', 'please'],
   help: ['ကူညီပါ', 'help'],
   medicine: ['ဆေး', 'medicine'],
+  sick: ['နေမကောင်း', 'နေမကောင်းပါ', 'ဖျား', 'sick'],
 }
 
 export const isMingalarbar = (text: string) => matchSign(text) === 'hello'
@@ -25,6 +28,8 @@ export function matchSign(text: string): SignId | null {
 /** All 20 Myanmar signs. Only the clips in `signs.ts` are played. */
 export type GlossId =
   | SignId
+  | 'i'
+  | 'headache'
   | 'yes'
   | 'no'
   | 'doctor'
@@ -53,7 +58,9 @@ type Gloss = {
 }
 
 const GLOSSES: Gloss[] = [
-  { id: 'hello', my: 'မင်္ဂလာပါ', en: 'Hello', forms: ['မင်္ဂလာပါ', 'hello'] },
+  { id: 'hello', my: 'မင်္ဂလာပါ', en: 'Hello', forms: ['မင်္ဂလာပါ', 'hello', 'mingalarbar'] },
+  { id: 'i', my: 'ကျွန်ုပ်', en: 'I', forms: ['ကျွန်ုပ်', 'ကျွန်တော်', 'ကျွန်မ', 'i'] },
+  { id: 'headache', my: 'ခေါင်းကိုက်ပါ', en: 'Headache', forms: ['ခေါင်းကိုက်', 'headache'] },
   { id: 'thank_you', my: 'ကျေးဇူးတင်ပါတယ်', en: 'Thank you', forms: ['ကျေးဇူးတင်ပါတယ်', 'ကျေးဇူးတင်', 'thank you', 'thank_you', 'thanks'] },
   { id: 'please', my: 'ကျေးဇူးပြု', en: 'Please', forms: ['ကျေးဇူးပြု', 'please'] },
   { id: 'help', my: 'ကူညီပါ', en: 'Help', forms: ['ကူညီ', 'help'] },
@@ -70,7 +77,7 @@ const GLOSSES: Gloss[] = [
   { id: 'name', my: 'နာမည်', en: 'Name', forms: ['နာမည်', 'name'] },
   { id: 'me', my: 'ကျွန်တော်', en: 'Me', forms: ['ကျွန်တော်', 'ကျွန်မ', 'me'] },
   { id: 'you', my: 'သင်', en: 'You', forms: ['သင်', 'you'] },
-  { id: 'sick', my: 'ဖျား', en: 'Sick', forms: ['ဖျား', 'sick'] },
+  { id: 'sick', my: 'နေမကောင်းပါ', en: 'Sick', forms: ['နေမကောင်း', 'ဖျား', 'sick'] },
   { id: 'mother', my: 'အမေ', en: 'Mother', forms: ['အမေ', 'mother'] },
   { id: 'father', my: 'အဖေ', en: 'Father', forms: ['အဖေ', 'father'] },
 ]
@@ -79,13 +86,13 @@ const BY_ID = Object.fromEntries(GLOSSES.map((gloss) => [gloss.id, gloss])) as R
 
 // Spoken extras that are not their own signs. Stripped after a gloss is found
 // so ကူညီပေးပါနော် and ကူညီပါ both become the help sign.
-const PARTICLES = ['ခင်ဗျား', 'ခင်ဗျာ', 'ပါတယ်', 'နော်', 'ပေး', '၍', 'ပါ', 'ရှင့်', 'ရှင်', 'ဗျာ', 'ဗျ', 'ဦး', 'လား', 'တယ်', 'သည်', 'ဘူး', 'ကွာ', 'နဲ့', 'နှင့်']
+const PARTICLES = ['ကို', '၍', 'ခင်ဗျား', 'ခင်ဗျာ', 'ပါတယ်', 'နော်', 'ပေး', '၍', 'ပါ', 'ရှင့်', 'ရှင်', 'ဗျာ', 'ဗျ', 'ဦး', 'လား', 'တယ်', 'သည်', 'ဘူး', 'ကွာ', 'နဲ့', 'နှင့်']
 
 const isGap = (char: string) => /[\s.,!?;:'"()[\]{}။၊]/.test(char)
 
 const isLatin = (form: string) => /[a-z]/i.test(form)
 
-function glossAt(text: string, lower: string, index: number): { id: GlossId; length: number } | null {
+function glossAt(_text: string, lower: string, index: number): { id: GlossId; length: number } | null {
   let best: { id: GlossId; length: number } | null = null
   for (const gloss of GLOSSES) {
     for (const form of gloss.forms) {
@@ -110,10 +117,7 @@ function particleAt(text: string, index: number): number {
 }
 
 function phrase(ids: GlossId[]): string {
-  const names = ids.map((id) => BY_ID[id].en)
-  if (names.length <= 1) return names[0] ?? ''
-  if (names.length === 2) return `${names[0]}, then ${names[1]}`
-  return `${names.slice(0, -1).join(', ')}, then ${names[names.length - 1]}`
+  return ids.map((id) => BY_ID[id].my).join(' → ')
 }
 
 export type SignPlan = {
@@ -169,13 +173,12 @@ export function planSigns(raw: string): SignPlan {
 
 function describe(signs: GlossId[], playable: SignId[], pending: GlossId[], unknown: string[]): string {
   if (!signs.length) {
-    if (unknown.length) return `No sign for: ${unknown.join(', ')}.`
-    return 'Type a sign or a short sentence, for example ကျေးဇူးပြု၍ ကူညီပါ.'
+    if (unknown.length) return `ဤစာသားအတွက် လက်ဟန်မရှိသေးပါ — ${unknown.join('၊ ')}`
+    return 'စာသားရိုက်ထည့်ပါ။ ဥပမာ — ကျွန်ုပ်နေမကောင်းပါ'
   }
   const parts: string[] = []
-  if (playable.length) parts.push(`${phrase(playable)}.`)
-  if (pending.length === 1) parts.push(`${phrase(pending)} is not animated yet.`)
-  else if (pending.length > 1) parts.push(`${phrase(pending)} are not animated yet.`)
-  if (unknown.length) parts.push(`Left out: ${unknown.join(', ')}.`)
+  if (playable.length) parts.push(`${phrase(playable)}`)
+  if (pending.length) parts.push(`ဤလက်ဟန်များကို မပြနိုင်သေးပါ — ${phrase(pending)}`)
+  if (unknown.length) parts.push(`လက်ဟန်မရှိသေးသည့် စာသား — ${unknown.join('၊ ')}`)
   return parts.join(' ')
 }

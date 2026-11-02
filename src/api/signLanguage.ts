@@ -1,3 +1,5 @@
+export type SignLanguage = 'myanmar' | 'international'
+
 export const LIVE_FRAME_MS = 120
 
 export type AiHealth = {
@@ -8,10 +10,10 @@ export type AiHealth = {
   is_msl?: boolean
 }
 
-export async function getAiHealth(): Promise<AiHealth> {
-  const response = await fetch('/api/health')
+export async function getAiHealth(language: SignLanguage): Promise<AiHealth> {
+  const response = await fetch(`/api/health?language=${language}`)
   if (!response.ok) {
-    throw new Error('The Python sign-language service is not running.')
+    throw new Error('AI server မဖွင့်ရသေးပါ။')
   }
   return response.json() as Promise<AiHealth>
 }
@@ -24,21 +26,26 @@ export type LiveUpdate = {
   confidence: number
   hands: boolean
   buffered: number
+  completed: boolean
+  sign_remaining: number
+  sign_number: number
   error?: string
 }
 
 export type LiveConnection = {
   sendFrame: (frame: Blob) => void
   reset: () => void
+  complete: () => void
   close: () => void
 }
 
 export function connectLiveTranslator(
   onUpdate: (update: LiveUpdate) => void,
   onError: (message: string) => void,
+  language: SignLanguage,
 ): LiveConnection {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const socket = new WebSocket(`${protocol}//${window.location.host}/api/live`)
+  const socket = new WebSocket(`${protocol}//${window.location.host}/api/live?language=${language}`)
   socket.binaryType = 'arraybuffer'
   let inflight = false
   let pending: Blob | null = null
@@ -65,13 +72,13 @@ export function connectLiveTranslator(
       if (update.error) onError(update.error)
       else onUpdate(update)
     } catch {
-      onError('Live translation returned an unreadable result.')
+      onError('လက်ဟန်ရလဒ်ကို ဖတ်မရပါ။ ပြန်စမ်းကြည့်ပါ။')
     }
     pump()
   }
   socket.onerror = () => {
     inflight = false
-    onError('Live translation disconnected.')
+    onError('လက်ဟန်ဘာသာပြန် ချိတ်ဆက်မှု ပြတ်သွားပါသည်။')
   }
   socket.onclose = () => {
     closed = true
@@ -85,6 +92,10 @@ export function connectLiveTranslator(
     },
     reset() {
       if (socket.readyState === WebSocket.OPEN) socket.send('reset')
+    },
+    complete() {
+      pending = null
+      if (socket.readyState === WebSocket.OPEN) socket.send('complete')
     },
     close() {
       closed = true

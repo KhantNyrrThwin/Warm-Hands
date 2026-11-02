@@ -2,8 +2,11 @@ import type { Object3D } from 'three'
 import { REST_LEFT, REST_RIGHT, createSignAnimation, type ArmPose, type SignAnimation, type SignPose } from './armPlayback'
 import { HAND_SHAPES } from './handArticulation'
 import { MINGALARBAR_DURATION, createMingalarbarAnimation } from './mingalarbar'
+import { createSickAnimation, SICK_DURATION } from './sick'
+import { createIAnimation, I_DURATION } from './i'
+import { createHeadacheAnimation, HEADACHE_DURATION } from './headache'
 
-export const ANIMATED_SIGN_IDS = ['hello', 'thank_you', 'please', 'help', 'medicine'] as const
+export const ANIMATED_SIGN_IDS = ['hello', 'thank_you', 'please', 'help', 'medicine', 'sick', 'i', 'headache'] as const
 export type SignId = (typeof ANIMATED_SIGN_IDS)[number]
 
 const L = REST_LEFT
@@ -157,6 +160,9 @@ export function createSignLibrary(model: Object3D): Record<SignId, SignAnimation
     please: createSignAnimation(model, please, PLEASE_DURATION),
     help: createSignAnimation(model, help, HELP_DURATION),
     medicine: createSignAnimation(model, medicine, MEDICINE_DURATION),
+    sick: createSickAnimation(model),
+    i: createIAnimation(model),
+    headache: createHeadacheAnimation(model),
   }
 }
 
@@ -166,4 +172,7 @@ export const SIGN_DURATIONS: Record<SignId, number> = {
   please: PLEASE_DURATION,
   help: HELP_DURATION,
   medicine: MEDICINE_DURATION,
+  sick: SICK_DURATION,
+  i: I_DURATION,
+  headache: HEADACHE_DURATION,
 }

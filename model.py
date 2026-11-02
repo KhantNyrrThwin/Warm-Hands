@@ -43,17 +43,20 @@ SEED = 34
 PATIENCE = 15
 
 
-def load_lstm_dataset(data_dir: Path = LSTM_DATA_DIR, min_sequences: int = 1):
+def load_lstm_dataset(data_dir: Path = LSTM_DATA_DIR, min_sequences: int = 8, gloss_rows=None, action_dirs=None):
     if not data_dir.is_dir():
         raise RuntimeError(
             f"No LSTM dataset at {data_dir}. Record with: python data_collection.py --live"
         )
-    gloss_rows = {item["id"]: item for item in load_glosses()}
-    actions = sorted(path.name for path in data_dir.iterdir() if path.is_dir())
+    gloss_rows = gloss_rows or {item["id"]: item for item in load_glosses()}
+    actions = list(gloss_rows)
     xs, ys, labels = [], [], []
     for action in actions:
+        action_dir = action_dirs[action] if action_dirs is not None else data_dir / action
+        if not action_dir.is_dir():
+            raise RuntimeError(f"Missing recordings for {action}")
         sequences = []
-        for sequence_dir in sorted(path for path in (data_dir / action).iterdir() if path.is_dir()):
+        for sequence_dir in sorted(path for path in action_dir.iterdir() if path.is_dir()):
             frames = []
             missing = False
             for frame in range(FRAMES):
@@ -64,10 +67,12 @@ def load_lstm_dataset(data_dir: Path = LSTM_DATA_DIR, min_sequences: int = 1):
                 frames.append(np.load(path))
             if missing or len(frames) != FRAMES:
                 continue
-            sequences.append(np.stack(frames).astype(np.float32))
+            sequence = np.stack(frames).astype(np.float32)
+            if sequence.shape != (FRAMES, 126) or not np.isfinite(sequence).all():
+                continue
+            sequences.append(sequence)
         if len(sequences) < min_sequences:
-            print(f"Skipping {action}: {len(sequences)} sequences, need {min_sequences}.", flush=True)
-            continue
+            raise RuntimeError(f"{action}: need {min_sequences} usable sequences; found {len(sequences)}")
         class_id = len(labels)
         item = gloss_rows.get(action)
         labels.append(display_name(item) if item else action)
@@ -95,9 +100,9 @@ def _accuracy(probs: np.ndarray, y: np.ndarray) -> float:
     return float((probs.argmax(axis=1) == y).mean())
 
 
-def train(data_dir: Path = LSTM_DATA_DIR, min_sequences: int = 1) -> Path:
+def train(data_dir: Path = LSTM_DATA_DIR, min_sequences: int = 8, checkpoint: Path = LSTM_CHECKPOINT_PATH, gloss_rows=None, action_dirs=None) -> Path:
     torch.manual_seed(SEED)
-    x, y, glosses = load_lstm_dataset(data_dir, min_sequences)
+    x, y, glosses = load_lstm_dataset(data_dir, min_sequences, gloss_rows, action_dirs)
     train_idx, test_idx = _stratified_split(y)
     x_train, y_train = x[train_idx], y[train_idx]
     x_test, y_test = x[test_idx], y[test_idx]
@@ -159,18 +164,19 @@ def train(data_dir: Path = LSTM_DATA_DIR, min_sequences: int = 1) -> Path:
                 break
     if best_state is not None:
         model.load_state_dict(best_state)
+    checkpoint.parent.mkdir(parents=True, exist_ok=True)
     export_numpy(
-        LSTM_CHECKPOINT_PATH,
+        checkpoint,
         model,
         mean,
         std,
         glosses,
         {"val_top1": best, "train_top1": best_train},
     )
-    torch_path = LSTM_CHECKPOINT_PATH.with_suffix(".pt")
+    torch_path = checkpoint.with_suffix(".pt")
     torch.save({"state_dict": model.state_dict(), "glosses": glosses}, torch_path)
-    print(f"Saved {LSTM_CHECKPOINT_PATH} test_acc={best:.3f}", flush=True)
-    return LSTM_CHECKPOINT_PATH
+    print(f"Saved {checkpoint} test_acc={best:.3f}", flush=True)
+    return checkpoint
 
 
 if __name__ == "__main__":
@@ -182,8 +188,13 @@ if __name__ == "__main__":
         action="store_true",
         help="Train on data/lstm_live, the 10-frame recordings that match the camera.",
     )
+    parser.add_argument("--language", choices=["myanmar", "international"], required=True)
     args = parser.parse_args()
+    from sign_app.languages import get_profile
+    profile = get_profile(args.language)
     if args.live:
-        train(LSTM_LIVE_DIR, min_sequences=8)
+        train(profile.live_dir, checkpoint=profile.checkpoint,
+              gloss_rows={item["id"]: item for item in profile.glosses()},
+              action_dirs={item["id"]: profile.sign_dir(item["id"]) for item in profile.glosses()})
     else:
-        train(LSTM_DATA_DIR)
+        parser.error("Use --live for the new language datasets.")

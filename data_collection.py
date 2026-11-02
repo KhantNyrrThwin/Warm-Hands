@@ -3,13 +3,13 @@
 Live translation classifies 10 frames taken 120 ms apart. Record the same
 kind of window, or the model will not match the camera.
 
-    python data_collection.py --live
+    python data_collection.py --live --language myanmar
 
-Space starts one sequence. Perform the sign while the counter runs.
-Esc saves what you have and quits. Record 30 sequences per sign, from
-slightly different distances and positions. Then:
+Opens the visual recorder with landmarks and a three-second countdown.
+Space starts one sequence; Esc cancels the current sample. Record 30
+sequences per sign, from slightly different distances and positions. Then:
 
-    python model.py --live
+    python model.py --live --language myanmar
 """
 
 from __future__ import annotations
@@ -21,9 +21,7 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(r"D:\WH")
-if not (ROOT / "sign_app").is_dir():
-    ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent
 _VENV_PYTHON = ROOT / ".venv" / "Scripts" / "python.exe"
 if _VENV_PYTHON.exists() and Path(sys.executable).resolve() != _VENV_PYTHON.resolve():
     raise SystemExit(subprocess.call([str(_VENV_PYTHON), *sys.argv], cwd=str(ROOT)))
@@ -106,7 +104,7 @@ def record(sequences: int, only: str = "") -> None:
     known = {item["id"]: item for item in load_glosses()}
     if only:
         if only not in known:
-            raise SystemExit(f"Unknown sign '{only}'. Use an id from data/msl20/glosses.json.")
+            raise SystemExit(f"Unknown sign '{only}'. Use an id from the selected language's glosses.json.")
         actions = [only]
     else:
         actions = gloss_ids()
@@ -219,7 +217,18 @@ def main() -> None:
     parser.add_argument("--live", action="store_true", help="Record 10-frame windows for live translation.")
     parser.add_argument("--sign", default="", help="Record one gloss id, for example hello.")
     parser.add_argument("--sequences", type=int, default=30, help="Sequences to store per sign.")
+    parser.add_argument("--language", choices=["myanmar", "international"], required=True)
     args = parser.parse_args()
+    if args.sequences < 8:
+        parser.error("Need at least 8 sequences per sign; 30 or more is recommended.")
+    if args.import_data:
+        parser.error("Record fresh data with --live.")
+    from sign_app.languages import get_profile
+    global LSTM_LIVE_DIR, load_glosses, gloss_ids
+    profile = get_profile(args.language)
+    LSTM_LIVE_DIR = profile.live_dir
+    load_glosses = profile.glosses
+    gloss_ids = lambda: [item["id"] for item in profile.glosses()]
     if args.import_data:
         import_recorded_clips()
         return
@@ -229,7 +238,8 @@ def main() -> None:
             "Record new 10-frame sequences with:\n\n"
             "    python data_collection.py --live\n"
         )
-    record(args.sequences, args.sign.strip())
+    from record_dataset import main as open_recorder
+    open_recorder(args.language, args.sign.strip(), args.sequences)
 
 
 if __name__ == "__main__":

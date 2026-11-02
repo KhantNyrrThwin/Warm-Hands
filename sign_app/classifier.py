@@ -23,7 +23,7 @@ class SignClassifier:
         self.path = Path(path)
         self.kind = "slt" if arch.startswith("slt_lstm") else "bilstm"
         self.glosses = data["glosses"].tolist()
-        self.is_msl = "msl" in self.path.name or self.kind == "slt"
+        self.is_msl = "msl" in self.path.name or "myanmar" in self.path.name
         self.metrics = {
             "val_top1": float(data["val_top1"]) if "val_top1" in data.files else -1.0,
             "val_top5": float(data["val_top5"]) if "val_top5" in data.files else -1.0,
