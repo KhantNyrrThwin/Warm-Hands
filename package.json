@@ -10,7 +10,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test": "bun test ./tests/greeting.test.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:clinic": "vite --mode lan"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
@@ -25,6 +26,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.185.4",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",

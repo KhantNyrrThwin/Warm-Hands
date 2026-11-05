@@ -72,3 +72,19 @@ export default defineConfig([
 ])
 ```
 "# Warm-Hands" 
+
+## Clinic conversation (doctor ↔ patient on two devices)
+
+1. On the clinic computer start the AI server (`npm run dev:ai`) and the web app for the local network: `npm run dev:clinic` (HTTPS, required for camera and microphone on the second device).
+2. Connect both devices to the same Wi‑Fi or phone hotspot.
+3. Doctor device: choose **ဆရာဝန် / Doctor** → *အခန်းအသစ် ဖွင့်ရန်*. The screen shows a 4‑digit room code and the address for the patient device.
+4. Patient device: open that address (accept the self-signed certificate warning), choose **လူနာ / Patient** and enter the code.
+
+What each side sees (Messenger-style chat; every MSL message is its own looping character animation inside the bubble):
+
+| | Sent messages (right) | Received messages (left) |
+|---|---|---|
+| Doctor (types or speaks) | text + MSL animation | patient's recognised text |
+| Patient (signs to camera) | MSL animation only | doctor's message as MSL animation only |
+
+Service seams: `src/api/translation.ts` (text → MSL), `src/animation/signRenderer.ts` (one shared 3D renderer drawing every bubble's animation), `src/hooks/useSignCapture.ts` (camera → MSL recognition over `/api/live`), `src/api/conversation.ts` (room relay over `/api/room/{code}`, falls back to two tabs on one device when the AI server is not running).

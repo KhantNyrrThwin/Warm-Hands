@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+/* Messenger-style bubble tails on the last bubble of a group. */
+.bubble-tail-right::after,
+.bubble-tail-left::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 12px;
+  height: 16px;
+  background: inherit;
+}
+.bubble-tail-right::after {
+  right: -7px;
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
+}
+.bubble-tail-left::after {
+  left: -7px;
+  clip-path: polygon(100% 0, 0 100%, 100% 100%);
+}

@@ -150,6 +150,100 @@ async def live(socket: WebSocket, language: str = "myanmar") -> None:
         return
 
 
+# ---------------------------------------------------------------------------
+# Clinic conversation rooms: a doctor device and a patient device on the same
+# Wi-Fi/hotspot join one room code and every chat message is relayed between
+# them. Rooms live in memory only; nothing is written to disk.
+# ---------------------------------------------------------------------------
+
+ROOM_HISTORY_LIMIT = 200
+ROLES = ("doctor", "patient")
+
+
+class _Room:
+    def __init__(self) -> None:
+        self.sockets: dict[WebSocket, str] = {}
+        self.history: list[dict] = []
+
+    def presence(self) -> dict:
+        joined = set(self.sockets.values())
+        return {"type": "presence", **{role: role in joined for role in ROLES}}
+
+    async def broadcast(self, payload: dict, skip: WebSocket | None = None) -> None:
+        for peer in list(self.sockets):
+            if peer is skip:
+                continue
+            try:
+                await peer.send_json(payload)
+            except Exception:  # noqa: BLE001 - a dropped peer is cleaned up on its own disconnect
+                pass
+
+
+_rooms: dict[str, _Room] = {}
+
+
+def _lan_addresses() -> list[str]:
+    import socket
+
+    found: list[str] = []
+    try:
+        probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        probe.connect(("10.255.255.255", 1))  # no packet is sent; picks the LAN interface
+        found.append(probe.getsockname()[0])
+        probe.close()
+    except OSError:
+        pass
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            address = info[4][0]
+            if address not in found and not address.startswith("127."):
+                found.append(address)
+    except OSError:
+        pass
+    return found
+
+
+@app.get("/api/network")
+def network() -> dict:
+    return {"addresses": _lan_addresses()}
+
+
+@app.websocket("/api/room/{code}")
+async def room(socket: WebSocket, code: str, role: str = "doctor") -> None:
+    await socket.accept()
+    if role not in ROLES or not code.isdigit() or len(code) != 4:
+        await socket.send_json({"type": "error", "error": "Invalid room code or role."})
+        await socket.close()
+        return
+    current = _rooms.setdefault(code, _Room())
+    current.sockets[socket] = role
+    try:
+        await socket.send_json({"type": "history", "messages": current.history})
+        await current.broadcast(current.presence())
+        while True:
+            data = await socket.receive_json()
+            if data.get("type") == "ping":
+                await socket.send_json({"type": "pong"})
+                continue
+            if data.get("type") != "message" or not isinstance(data.get("message"), dict):
+                continue
+            message = data["message"]
+            if message.get("from") != role:
+                continue
+            current.history.append(message)
+            del current.history[:-ROOM_HISTORY_LIMIT]
+            await current.broadcast({"type": "message", "message": message}, skip=socket)
+            await socket.send_json({"type": "ack", "id": message.get("id")})
+    except (WebSocketDisconnect, RuntimeError, ValueError):
+        pass
+    finally:
+        current.sockets.pop(socket, None)
+        if current.sockets:
+            await current.broadcast(current.presence())
+        elif not current.history:
+            _rooms.pop(code, None)
+
+
 @app.get("/api/health")
 def health(language: str = "myanmar") -> dict:
     try:
