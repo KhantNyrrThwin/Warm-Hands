@@ -4,7 +4,13 @@ import { createSignAnimation, mirrorArm, type ArmPose, type SignPose } from './a
 
 export const MINGALARBAR_DURATION = 5.05
 
-const rest: ArmPose = { wrist: [1.10, 2.54, 0], direction: [.045, -.27, 0], palm: [0, 0, -1], gather: 0, handShape: HAND_SHAPES.fist }
+const rest: ArmPose = { 
+  wrist: [1.10, 2.54, 0], 
+  direction: [-.045, -.27, 0], 
+  palm: [0, 0, -1], 
+  gather: 0, 
+  handShape: HAND_SHAPES.open
+}
 
 const mirrored: Array<ArmPose & { time: number }> = [
   { time: 0, ...rest },
@@ -20,8 +26,8 @@ const mirrored: Array<ArmPose & { time: number }> = [
 
 const poses: SignPose[] = mirrored.map(({ time, ...pose }) => ({
   time,
-  left: pose,
-  right: mirrorArm(pose),
+  right: pose,
+  left: mirrorArm(pose),
 }))
 
 export function createMingalarbarAnimation(model: Object3D) {

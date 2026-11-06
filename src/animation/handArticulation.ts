@@ -26,7 +26,7 @@ export const HAND_SHAPES = {
 
 /** Applies offsets AFTER the arm solver has restored its base pose. */
 export function createHandArticulation(model: Object3D) {
-  const joints = (['L', 'R'] as const).map((side) => ({
+  const joints = (['R', 'L'] as const).map((side) => ({
     side,
     fingers: digits.map((digit) => ({
       digit,
@@ -40,7 +40,7 @@ export function createHandArticulation(model: Object3D) {
   }))
   const x = new Vector3(1, 0, 0), y = new Vector3(0, 1, 0), z = new Vector3(0, 0, 1)
   return {
-    apply(side: 'L' | 'R', a: HandShape = {}, b: HandShape = a, blend = 0) {
+    apply(side: 'R' | 'L', a: HandShape = {}, b: HandShape = a, blend = 0) {
       const hand = joints.find((h) => h.side === side)!
       const t = clamp(blend, 0, 1)
       const lerp = (start: number, end: number) => start + (end - start) * t
