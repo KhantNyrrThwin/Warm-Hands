@@ -5,43 +5,11 @@ The app asks for Myanmar or International Sign Language when it opens. Change la
 - Myanmar: Mingalarbar, Sick, I, Headache, Help.
 - International: Please, Help, Sick, Medicine, I.
 
-## Record fresh datasets
+## Record and train (77 MSL signs)
 
-Use a working Python environment with `pip install -r requirements.txt`.
+The old 5-sign recorder and trainers (`record_dataset.py`, `data_collection.py`, `model.py`, …) were removed. Data collection and training now use `collect_data.py`, `build_dataset.py` and `train_model.py` for the 77 signs. See [DATA_COLLECTION_GUIDE.md](DATA_COLLECTION_GUIDE.md).
 
-Open the visual recorder (recommended):
-
-```sh
-python record_dataset.py
-```
-
-Choose Myanmar or International, select a sign, and click **Record** (or press Space). The camera shows hand and upper-body landmarks on a mirrored preview. A large **3 → 2 → 1** countdown gives you time to get into position before each sample. Perform the sign when **REC** appears. Samples save automatically, and the panel shows progress for all five signs. Esc or **Cancel recording** discards an in-progress sample. If hands disappear during capture, the sample is discarded so you can retry.
-
-Enable **Record next sample automatically** to collect consecutive samples alone; each sample gets a fresh three-second countdown. It stops when the selected sign reaches its target. Choose the next sign yourself.
-
-These commands open the same UI with the language and target preselected:
-
-```sh
-python data_collection.py --live --language myanmar --sequences 30
-python data_collection.py --live --language international --sequences 30
-```
-
-Run again to resume. Add `--sign headache` (or another lowercase sign ID) to preselect a sign. Record the appropriate sign language for each dataset, including shared words. Vary signer, distance, position and lighting. Each sample uses 10 frames at 120 ms intervals to match live recognition. The countdown frames are excluded from training data.
-
-Recordings go into `data/myanmar5/live` and `data/international5/live`. **Help is shared:** recording Help with either language selected saves to `data/international5/live/help`. Both languages show the same Help count and train on those same samples. When adding Help samples manually, put numbered sample folders in that shared directory; each folder must contain `0.npy` through `9.npy`. Other signs remain separate, including Sick and I.
-
-The 30 samples previously recorded under Myanmar Please are Please recordings and are stored under `data/international5/live/please`; `data/help-migration.json` records their original paths and verified file hashes. Shared Help starts empty and must be recorded again. Myanmar's class list now ends with Help. Retrain both language models after collecting Help, then restart the AI server. Model weights are not changed by moving or renaming recording data.
-
-Aim for at least 30 samples per sign. Training requires all five classes and at least eight complete samples per class.
-
-## Train after recording
-
-```sh
-python model.py --live --language myanmar
-python model.py --live --language international
-```
-
-Models are saved separately as `models/myanmar5_lstm.npz` and `models/international5_lstm.npz` (with matching `.pt` files). Restart the AI server after retraining to load the new checkpoints.
+The live app still loads the existing 5-sign checkpoints until it is switched to `models/msl77_model.pt`.
 
 ```sh
 npm run dev:ai

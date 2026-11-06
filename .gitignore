@@ -35,3 +35,6 @@ manual-assets.zip
 *.njsproj
 *.sln
 *.sw?
+
+# MSL 77 recordings (large; share as zip via build_dataset.py export)
+data/msl77/

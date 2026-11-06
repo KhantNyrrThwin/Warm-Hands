@@ -11,4 +11,4 @@ if (Test-Path $local) {
 $env:WH_ROOT = $root
 Start-Process -FilePath $python -ArgumentList "server\main.py" -WorkingDirectory $root
 Set-Location $root
-npm run dev
+npm run dev:clinic
