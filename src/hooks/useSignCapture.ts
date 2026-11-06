@@ -23,7 +23,7 @@ export function useSignCapture(language: SignLanguage, onError: (message: string
   const [latest, setLatest] = useState('')
   const [hands, setHands] = useState(false)
   const [signNumber, setSignNumber] = useState(1)
-  const [remaining, setRemaining] = useState(5)
+  const [remaining, setRemaining] = useState(3)
   const [completed, setCompleted] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -72,7 +72,7 @@ export function useSignCapture(language: SignLanguage, onError: (message: string
     setSentence('')
     setLatest('')
     setSignNumber(1)
-    setRemaining(5)
+    setRemaining(3)
     setCompleted(false)
   }, [])
 
