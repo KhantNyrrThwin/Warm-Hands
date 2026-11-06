@@ -35,8 +35,8 @@ function basis(direction: Vector3, palm: Vector3) {
   return new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(x, y, z))
 }
 
-export const REST_LEFT: ArmPose = { wrist: [1.10, 2.54, 0], direction: [.045, -.27, 0], palm: [0, 0, -1], gather: 0, handShape: HAND_SHAPES.fist }
-export const REST_RIGHT: ArmPose = { wrist: [-1.10, 2.54, 0], direction: [-.045, -.27, 0], palm: [0, 0, -1], gather: 0, handShape: HAND_SHAPES.fist }
+export const REST_RIGHT: ArmPose = { wrist: [1.10, 2.54, 0], direction: [.045, -.27, 0], palm: [0, 0, -1], gather: 0, handShape: HAND_SHAPES.open }
+export const REST_LEFT: ArmPose = { wrist: [-1.10, 2.54, 0], direction: [-.045, -.27, 0], palm: [0, 0, -1], gather: 0, handShape: HAND_SHAPES.open }
 
 export function mirrorArm(pose: ArmPose): ArmPose {
   return {
@@ -62,14 +62,14 @@ export function createSignAnimation(model: Object3D, poses: SignPose[], duration
   const modelRotation = model.getWorldQuaternion(new Quaternion())
   const articulation = createHandArticulation(model)
   const arms = [1, -1].map((sign) => {
-    const side = sign === 1 ? 'L' : 'R'
+    const side = sign === 1 ? 'R' : 'L'
     const upper = getBone(`upper_arm.${side}`)
     const forearm = getBone(`forearm.${side}`)
     const hand = getBone(`hand.${side}`)
     const a = upper.getWorldPosition(new Vector3())
     const b = forearm.getWorldPosition(new Vector3())
     const c = hand.getWorldPosition(new Vector3())
-    const restPose = sign === 1 ? REST_LEFT : REST_RIGHT
+    const restPose = sign === 1 ? REST_RIGHT : REST_LEFT
     const restDirection = new Vector3(...restPose.direction).normalize().applyQuaternion(modelRotation)
     const restPalm = new Vector3(...restPose.palm).applyQuaternion(modelRotation)
     const handBasisOffset = basis(restDirection, restPalm).invert().multiply(hand.getWorldQuaternion(new Quaternion()))
@@ -99,8 +99,8 @@ export function createSignAnimation(model: Object3D, poses: SignPose[], duration
   }
   const idle = () => {
     reset()
-    articulation.apply('L', HAND_SHAPES.fist)
-    articulation.apply('R', HAND_SHAPES.fist)
+    articulation.apply('L', HAND_SHAPES.open)
+    articulation.apply('R', HAND_SHAPES.open)
   }
   const apply = (seconds: number) => {
     reset()
@@ -118,18 +118,18 @@ export function createSignAnimation(model: Object3D, poses: SignPose[], duration
     const linear = (seconds - a.time) / (b.time - a.time)
     const t = options.continuous ? linear : smoothstep(linear)
     for (const arm of arms) {
-      const poseA = arm.sign === 1 ? a.left : a.right
-      const poseB = arm.sign === 1 ? b.left : b.right
-      const resting = arm.sign === 1 ? REST_LEFT : REST_RIGHT
+      const poseA = arm.sign === 1 ? a.right : a.left
+      const poseB = arm.sign === 1 ? b.right : b.left
+      const resting = arm.sign === 1 ? REST_RIGHT : REST_LEFT
       if (options.continuous && poseA === resting && poseB === resting) {
-        articulation.apply(arm.sign === 1 ? 'L' : 'R', HAND_SHAPES.fist)
+        articulation.apply(arm.sign === 1 ? 'R' : 'L', HAND_SHAPES.open)
         continue
       }
       const vec = (v: number[]) => new Vector3(v[0], v[1], v[2])
       // Monotone cubic Hermite interpolation preserves velocity through passing
       // keys, stops at holds/turns, and avoids overshooting anatomical targets.
       const curve = (field: 'wrist' | 'direction' | 'palm') => {
-        const values = poses.map(pose => arm.sign === 1 ? pose.left[field] : pose.right[field])
+        const values = poses.map(pose => arm.sign === 1 ? pose.right[field] : pose.left[field])
         const tangent = (index: number, axis: number) => {
           if (index <= 0 || index >= poses.length - 1) return 0
           const before = (values[index][axis] - values[index - 1][axis]) / (poses[index].time - poses[index - 1].time)
@@ -176,7 +176,7 @@ export function createSignAnimation(model: Object3D, poses: SignPose[], duration
         const aligned = new Quaternion().setFromUnitVectors(direction, handDirection).multiply(current)
         setWorldRotation(finger.root, current.slerp(aligned, fingerGather * finger.amount))
       }
-      const side = arm.sign === 1 ? 'L' : 'R'
+      const side = arm.sign === 1 ? 'R' : 'L'
       articulation.apply(side, poseA.handShape ?? {}, poseB.handShape ?? {}, t)
       const rollAmount = (aUp ? 1 - t : 0) + (bUp ? t : 0)
       if (rollAmount > .01) {
