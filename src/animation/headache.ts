@@ -20,7 +20,7 @@ function temple(side: number, curl: number): ArmPose {
     },
   }
 }
-const raised = (time: number, curl: number): SignPose => ({ time, left: temple(1, curl), right: temple(-1, curl) })
+const raised = (time: number, curl: number): SignPose => ({ time, left: temple(-1, curl), right: temple(1, curl) })
 const poses: SignPose[] = [
   { time: 0, left: REST_LEFT, right: REST_RIGHT },
   { time: .2, left: REST_LEFT, right: REST_RIGHT },

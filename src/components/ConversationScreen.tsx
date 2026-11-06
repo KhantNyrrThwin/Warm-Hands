@@ -267,12 +267,33 @@ function DoctorComposer({ onSend, onNotice }: { onSend: (text: string, source: C
           />
           <button
             type="button"
-            onClick={listening ? speech.stop : speech.start}
+            onClick={() => {
+              if (listening) {
+                speech.stop();
+              } else {
+                speech.start();
+              }
+            }}
             aria-pressed={listening}
-            aria-label={listening ? 'အသံဖမ်းခြင်း ရပ်ရန်' : 'အသံဖြင့် ပြောရန်'}
-            className={`m-1 grid h-12 w-12 shrink-0 cursor-pointer place-items-center rounded-full active:scale-95 ${listening ? 'bg-red-500 text-white' : 'text-[#c25e00] hover:bg-orange-100'}`}
+            aria-label={
+              listening
+                ? 'အသံဖမ်းခြင်း ရပ်ရန်'
+                : 'အသံဖြင့် ပြောရန်'
+            }
+            className={`m-1 grid h-12 w-12 shrink-0 cursor-pointer place-items-center rounded-full active:scale-95 ${
+              listening
+                ? 'bg-red-500 text-white'
+                : 'text-[#c25e00] hover:bg-orange-100'
+            }`}
           >
-            {listening ? <span className="h-4 w-4 rounded-sm bg-white" aria-hidden="true" /> : <MicIcon className="h-7 w-7" />}
+            {listening ? (
+              <span
+                className="h-4 w-4 rounded-sm bg-white"
+                aria-hidden="true"
+              />
+            ) : (
+              <MicIcon className="h-7 w-7" />
+            )}
           </button>
         </div>
         <button
