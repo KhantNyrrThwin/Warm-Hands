@@ -9,10 +9,12 @@ type Props = {
   /** Accessible description, e.g. "ဆရာဝန်၏ လက်ဟန်". */
   label: string
   className?: string
+  /** Freeze on this clip time in seconds (pose inspection only). */
+  at?: number
 }
 
 /** A looping, GIF-like MSL animation of the Warm Hands character. */
-export default function SignGif({ signs, label, className = 'w-56 sm:w-64' }: Props) {
+export default function SignGif({ signs, label, className = 'w-56 sm:w-64', at }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const playbackRef = useRef<SignPlayback | null>(null)
   const [clip, setClip] = useState(-1)
@@ -22,13 +24,13 @@ export default function SignGif({ signs, label, className = 'w-56 sm:w-64' }: Pr
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas || !key) return
-    const playback = playSigns(canvas, key.split(',') as SignId[], setClip)
+    const playback = playSigns(canvas, key.split(',') as SignId[], setClip, at)
     playbackRef.current = playback
     return () => {
       playback.dispose()
       playbackRef.current = null
     }
-  }, [key])
+  }, [key, at])
 
   if (!signs.length) {
     return (

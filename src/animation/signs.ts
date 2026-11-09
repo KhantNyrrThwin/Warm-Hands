@@ -5,8 +5,9 @@ import { MINGALARBAR_DURATION, createMingalarbarAnimation } from './mingalarbar'
 import { createSickAnimation, SICK_DURATION } from './sick'
 import { createIAnimation, I_DURATION } from './i'
 import { createHeadacheAnimation, HEADACHE_DURATION } from './headache'
+import { createDemoSignLibrary, DEMO_DURATIONS, DEMO_SIGN_IDS } from './demoSigns'
 
-export const ANIMATED_SIGN_IDS = ['hello', 'thank_you', 'please', 'help', 'medicine', 'sick', 'i', 'headache'] as const
+export const ANIMATED_SIGN_IDS = ['hello', 'thank_you', 'please', 'help', 'medicine', 'sick', 'i', 'headache', ...DEMO_SIGN_IDS] as const
 export type SignId = (typeof ANIMATED_SIGN_IDS)[number]
 
 const L = REST_LEFT
@@ -34,26 +35,6 @@ const pleasePalm: ArmPose = {
   handShape: HAND_SHAPES.open,
 }
 
-const medicineCup: ArmPose = {
-  wrist: [.28, 3.16, .58],
-  direction: [-.88, .08, .28],
-  palm: [.04, .98, .18],
-  gather: .18,
-}
-
-const medicinePoint: ArmPose = {
-  wrist: [-.08, 3.44, .58],
-  direction: [.22, -.94, .16],
-  palm: [.08, -.18, .98],
-  gather: .2,
-  fingers: { thumb: .45, index: .22, middle: 1, ring: .18, pinky: .12 },
-}
-
-const medicineTap: ArmPose = {
-  ...medicinePoint,
-  wrist: [-.08, 3.30, .58],
-}
-
 const helpLeft: ArmPose = {
   wrist: [.12, 3.08, .52],
   direction: [-.90, .06, .22],
@@ -78,7 +59,6 @@ const helpRightUp: ArmPose = {
 export const THANK_YOU_DURATION = 2.55
 export const PLEASE_DURATION = 5.20
 export const HELP_DURATION = 3.25
-export const MEDICINE_DURATION = 3.15
 
 const thankYou: SignPose[] = [
   { time: 0, left: L, right: R },
@@ -138,31 +118,18 @@ const help: SignPose[] = [
   { time: HELP_DURATION, left: L, right: R },
 ]
 
-const medicine: SignPose[] = [
-  { time: 0, left: L, right: R },
-  { time: .18, left: L, right: R },
-  { time: .48, left: { ...medicineCup, wrist: [.55, 2.92, .32] }, right: { ...medicinePoint, wrist: [-.55, 3.08, .32] } },
-  { time: .82, left: medicineCup, right: medicinePoint },
-  { time: 1.12, left: medicineCup, right: medicineTap },
-  { time: 1.38, left: medicineCup, right: medicinePoint },
-  { time: 1.64, left: medicineCup, right: medicineTap },
-  { time: 1.90, left: medicineCup, right: medicinePoint },
-  { time: 2.22, left: medicineCup, right: medicineTap },
-  { time: 2.48, left: medicineCup, right: medicinePoint },
-  { time: 2.82, left: { ...medicineCup, wrist: [.58, 2.90, .28] }, right: { ...medicinePoint, wrist: [-.58, 2.98, .28], gather: .1 } },
-  { time: MEDICINE_DURATION, left: L, right: R },
-]
-
 export function createSignLibrary(model: Object3D): Record<SignId, SignAnimation> {
+  // Demo clips (and the book's ဆေး medicine sign) override the older ones.
+  const demo = createDemoSignLibrary(model)
   return {
     hello: createMingalarbarAnimation(model),
     thank_you: createSignAnimation(model, thankYou, THANK_YOU_DURATION),
     please: createSignAnimation(model, please, PLEASE_DURATION),
     help: createSignAnimation(model, help, HELP_DURATION),
-    medicine: createSignAnimation(model, medicine, MEDICINE_DURATION),
     sick: createSickAnimation(model),
     i: createIAnimation(model),
     headache: createHeadacheAnimation(model),
+    ...demo,
   }
 }
 
@@ -171,8 +138,8 @@ export const SIGN_DURATIONS: Record<SignId, number> = {
   thank_you: THANK_YOU_DURATION,
   please: PLEASE_DURATION,
   help: HELP_DURATION,
-  medicine: MEDICINE_DURATION,
   sick: SICK_DURATION,
   i: I_DURATION,
   headache: HEADACHE_DURATION,
+  ...DEMO_DURATIONS,
 }

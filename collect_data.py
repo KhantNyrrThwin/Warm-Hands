@@ -239,8 +239,8 @@ class Collector(QWidget):
         self.big_sign.setText(f"{s['my']}   ·   {s['en']}")
         self.progress.setText(
             f"ဤလက်ဟန်: <b>{self.count(sid)}/{target}</b> &nbsp;·&nbsp; "
-            f"ပြီးသောလက်ဟန်: <b>{done}/77</b> &nbsp;·&nbsp; "
-            f"စုစုပေါင်း: <b>{total}/{77 * target}</b>")
+            f"ပြီးသောလက်ဟန်: <b>{done}/{len(SIGN_IDS)}</b> &nbsp;·&nbsp; "
+            f"စုစုပေါင်း: <b>{total}/{len(SIGN_IDS) * target}</b>")
 
     def save_settings(self):
         SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)

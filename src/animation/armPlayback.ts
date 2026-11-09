@@ -49,7 +49,14 @@ export function mirrorArm(pose: ArmPose): ArmPose {
   }
 }
 
-export function createSignAnimation(model: Object3D, poses: SignPose[], duration: number, options: { continuous?: boolean; elbowPole?: number[] } = {}): SignAnimation {
+export function createSignAnimation(model: Object3D, poses: SignPose[], duration: number, options: {
+  continuous?: boolean
+  elbowPole?: number[]
+  /** Pose the torso/head before the arms are solved (hand targets stay exact). */
+  before?: (seconds: number) => void
+  /** Pose the torso/head after the arms, which are carried along with it. */
+  after?: (seconds: number) => void
+} = {}): SignAnimation {
   const bones = new Map<string, Bone>()
   model.traverse((object) => { if (object instanceof Bone) bones.set(object.name, object) })
   const getBone = (name: string) => {
@@ -111,6 +118,10 @@ export function createSignAnimation(model: Object3D, poses: SignPose[], duration
     if (seconds >= duration) {
       idle()
       return
+    }
+    if (options.before) {
+      options.before(seconds)
+      model.updateMatrixWorld(true)
     }
     const right = poses.findIndex((pose) => pose.time >= seconds)
     const a = poses[Math.max(0, right - 1)]
@@ -177,7 +188,8 @@ export function createSignAnimation(model: Object3D, poses: SignPose[], duration
         setWorldRotation(finger.root, current.slerp(aligned, fingerGather * finger.amount))
       }
       const side = arm.sign === 1 ? 'R' : 'L'
-      articulation.apply(side, poseA.handShape ?? {}, poseB.handShape ?? {}, t)
+      // Fingers always ease, even when the wrist path is continuous.
+      articulation.apply(side, poseA.handShape ?? {}, poseB.handShape ?? {}, smoothstep(linear))
       const rollAmount = (aUp ? 1 - t : 0) + (bUp ? t : 0)
       if (rollAmount > .01) {
         const thumbRoot = getBone(`thumb.01.${side}`)
@@ -196,6 +208,7 @@ export function createSignAnimation(model: Object3D, poses: SignPose[], duration
         }
       }
     }
+    options.after?.(seconds)
     model.updateMatrixWorld(true)
   }
   return { apply, reset, idle, duration }

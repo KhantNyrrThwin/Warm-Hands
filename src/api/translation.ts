@@ -36,6 +36,14 @@ const SIGN_LABELS: Record<SignId, string> = {
   sick: 'နေမကောင်း',
   i: 'ကျွန်ုပ်',
   headache: 'ခေါင်းကိုက်',
+  what_happened: 'ဘာဖြစ်လို့လဲ',
+  stomach_ache: 'အစာအိမ်နာ',
+  how: 'ဘယ်လို',
+  drink: 'သောက်',
+  eat: 'စား',
+  finished: 'ပြီး',
+  five: '၅',
+  minute: 'မိနစ်',
 }
 
 export const signLabel = (id: SignId) => SIGN_LABELS[id] ?? id

@@ -132,8 +132,8 @@ def cmd_report(args):
     for signer, c in sorted(counts.items()):
         total = sum(min(c[s], target) for s in SIGN_IDS)
         done = sum(c[s] >= target for s in SIGN_IDS)
-        print(f"\n== {signer}: {sum(c.values())} samples, {done}/77 signs complete "
-              f"({total}/{77 * target} = {total / (77 * target):.0%})")
+        print(f"\n== {signer}: {sum(c.values())} samples, {done}/{len(SIGN_IDS)} signs complete "
+              f"({total}/{len(SIGN_IDS) * target} = {total / (len(SIGN_IDS) * target):.0%})")
         missing = [f"{s}({c[s]})" for s in SIGN_IDS if c[s] < target]
         if missing:
             more = f" ... and {len(missing) - 15} more" if len(missing) > 15 else ""
@@ -329,14 +329,14 @@ def cmd_build(args):
 
     md = [f"# MSL 77 dataset report\n", f"Built {info['built_at']} · version `{DATASET_VERSION}`\n",
           f"- Usable samples: **{len(Y)}** (rejected {len(rejected)})",
-          f"- Classes with data: **{info['classes_with_data']}/77**",
+          f"- Classes with data: **{info['classes_with_data']}/{len(SIGN_IDS)}**",
           f"- Each sample: {TARGET_FRAMES} frames × {FEATURE_SIZE} features ({RECORD_SECONDS:g} s)",
           f"- Target: {target} per sign per signer\n", "## Signers\n",
           "| Signer | Name | Laptop(s) | Hand | Samples | Signs complete | Avg fps | Hands visible | Dates |",
           "|---|---|---|---|---|---|---|---|---|"]
     for sg, v in signers_out.items():
         md.append(f"| {sg} | {', '.join(v['names'])} | {', '.join(v['laptops'])} | "
-                  f"{', '.join(v['dominant_hand'])} | {v['samples']} | {v['signs_complete']}/77 | "
+                  f"{', '.join(v['dominant_hand'])} | {v['samples']} | {v['signs_complete']}/{len(SIGN_IDS)} | "
                   f"{v['avg_fps']} | {v['avg_hand_visible']:.0%} | {v['recorded_from']} → {v['recorded_to']} |")
     md += ["\n## Samples per sign\n", "| # | Sign | English | " + " | ".join(signer_names) + " | Total |",
            "|---|---|---|" + "---|" * (len(signer_names) + 1)]
@@ -349,7 +349,7 @@ def cmd_build(args):
         md += [f"| {r['file']} | {r['reason']} |" for r in rejected]
     (out_dir / "DATASET_REPORT.md").write_text("\n".join(md) + "\n", encoding="utf-8")
 
-    print(f"Dataset: {len(Y)} samples, {info['classes_with_data']}/77 classes, "
+    print(f"Dataset: {len(Y)} samples, {info['classes_with_data']}/{len(SIGN_IDS)} classes, "
           f"{len(signer_names)} signer(s): {', '.join(signer_names)}")
     print(f"Rejected: {len(rejected)}   Missing (sign, signer) pairs below target: {len(missing)}")
     print(f"Wrote {out_dir / 'msl77_dataset.npz'}, dataset_info.json, samples.csv, DATASET_REPORT.md")

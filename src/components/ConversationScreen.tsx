@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import MessageBubble, { Avatar } from './MessageBubble'
 import Notification from './Notification'
-import SignCapture from './SignCapture'
+import DemoSignCapture from './DemoSignCapture'
+import { DOCTOR_LINES, patientLine } from '../demo/script'
 import StatusPill, { type Tone } from './StatusPill'
 import { CameraIcon, HandIcon, MicIcon, SendIcon } from './icons'
 import {
@@ -17,7 +18,7 @@ import {
 } from '../api/conversation'
 import { translateTextToSigns } from '../api/translation'
 import { useSpeechInput, type MicStatus } from '../hooks/useSpeechInput'
-import { useSignCapture, type CameraStatus, type RecognizerStatus } from '../hooks/useSignCapture'
+import type { CameraStatus, RecognizerStatus } from '../hooks/useSignCapture'
 
 type Props = { role: Role; code: string; onLeave: () => void }
 
@@ -45,7 +46,8 @@ const RECOGNIZER: Record<RecognizerStatus, [string, Tone]> = {
   offline: ['လက်ဟန် AI မရှိ', 'warn'],
 }
 
-const DOCTOR_PHRASES = ['မင်္ဂလာပါ', 'နေမကောင်းဘူးလား', 'ခေါင်းကိုက်လား', 'ဆေးသောက်ပါ', 'ကျေးဇူးတင်ပါတယ်']
+// DEMO: the doctor's quick replies are the scripted lines, in order.
+const DOCTOR_PHRASES = DOCTOR_LINES.map((line) => line.text)
 
 export default function ConversationScreen({ role, code, onLeave }: Props) {
   const peer: Role = role === 'doctor' ? 'patient' : 'doctor'
@@ -173,8 +175,8 @@ export default function ConversationScreen({ role, code, onLeave }: Props) {
       </div>
 
       {role === 'doctor'
-        ? <DoctorComposer onSend={send} onNotice={setNotice} />
-        : <PatientComposer onSend={(text) => void send(text, 'sign')} onNotice={setNotice} />}
+        ? <DoctorComposer onSend={send} onNotice={setNotice} next={messages.filter((m) => m.from === 'doctor').length} />
+        : <PatientComposer onSend={(text) => void send(text, 'sign')} sent={messages.filter((m) => m.from === 'patient').length} />}
     </div>
   )
 }
@@ -216,7 +218,7 @@ function PatientPills() {
 }
 
 // ---- Doctor: type or speak ----------------------------------------------------------
-function DoctorComposer({ onSend, onNotice }: { onSend: (text: string, source: ChatMessage['source']) => Promise<void>; onNotice: (text: string) => void }) {
+function DoctorComposer({ onSend, onNotice, next }: { onSend: (text: string, source: ChatMessage['source']) => Promise<void>; onNotice: (text: string) => void; next: number }) {
   const [text, setText] = useState('')
   const [source, setSource] = useState<ChatMessage['source']>('typed')
   const speech = useSpeechInput((heard) => {
@@ -236,8 +238,8 @@ function DoctorComposer({ onSend, onNotice }: { onSend: (text: string, source: C
   return (
     <div className="border-t border-orange-100 bg-white px-2 pb-3 pt-2 sm:px-4">
       <div className="mb-2 flex gap-2 overflow-x-auto pb-1" aria-label="အမြန်စကားစု">
-        {DOCTOR_PHRASES.map((phrase) => (
-          <button key={phrase} type="button" onClick={() => void onSend(phrase, 'typed')} className="shrink-0 cursor-pointer rounded-full border-2 border-orange-200 bg-orange-50 px-4 py-1.5 text-base font-semibold text-gray-900 hover:border-[#ff7a00]">
+        {DOCTOR_PHRASES.map((phrase, index) => (
+          <button key={phrase} type="button" onClick={() => void onSend(phrase, 'typed')} className={`shrink-0 cursor-pointer rounded-full border-2 px-4 py-1.5 text-base font-semibold hover:border-[#ff7a00] ${index === next ? 'border-[#ff7a00] bg-[#ff7a00] text-white' : 'border-orange-200 bg-orange-50 text-gray-900'}`}>
             {phrase}
           </button>
         ))}
@@ -309,26 +311,16 @@ function DoctorComposer({ onSend, onNotice }: { onSend: (text: string, source: C
   )
 }
 
-// ---- Patient: sign to the camera ------------------------------------------------------
-function PatientComposer({ onSend, onNotice }: { onSend: (text: string) => void; onNotice: (text: string) => void }) {
+// ---- Patient: sign to the camera (DEMO: scripted, word by word) ------------------------
+function PatientComposer({ onSend, sent }: { onSend: (text: string) => void; sent: number }) {
   const [open, setOpen] = useState(false)
-  const capture = useSignCapture('myanmar', onNotice)
-  useEffect(() => { publishDeviceStatus({ camera: capture.camera, recognizer: capture.recognizer }) }, [capture.camera, capture.recognizer])
-
-  const begin = async () => {
-    setOpen(true)
-    if (!(await capture.start())) setOpen(false)
-  }
-  const close = () => {
-    capture.cancel()
-    setOpen(false)
-  }
+  useEffect(() => { publishDeviceStatus({ camera: open ? 'on' : 'off', recognizer: 'ready' }) }, [open])
 
   return (
     <div className="border-t border-orange-100 bg-white px-3 pb-3 pt-3 sm:px-4">
       <button
         type="button"
-        onClick={() => void begin()}
+        onClick={() => setOpen(true)}
         disabled={open}
         className="flex min-h-16 w-full cursor-pointer items-center justify-center gap-4 rounded-full bg-[#ff7a00] px-6 text-2xl font-bold text-white shadow-lg hover:bg-[#e66f00] active:scale-[.98] disabled:opacity-60"
       >
@@ -336,11 +328,11 @@ function PatientComposer({ onSend, onNotice }: { onSend: (text: string) => void;
         လက်ဟန်ဖြင့် ပြောရန်
       </button>
       {open && (
-        <SignCapture
-          capture={capture}
-          onSend={(text) => { onSend(text); close() }}
-          onRetry={() => void begin()}
-          onClose={close}
+        <DemoSignCapture
+          key={sent}
+          line={patientLine(sent)}
+          onSend={(text) => { onSend(text); setOpen(false) }}
+          onClose={() => setOpen(false)}
         />
       )}
     </div>

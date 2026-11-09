@@ -3,6 +3,7 @@ import bgImg from './assets/Main_BG.jpg'
 import RoleSelect from './components/RoleSelect'
 import JoinRoom from './components/JoinRoom'
 import ConversationScreen from './components/ConversationScreen'
+import SignPreview from './components/SignPreview'
 import { isRoomCode, type Role } from './api/conversation'
 import './App.css'
 
@@ -33,6 +34,8 @@ function App() {
     const query = params.toString()
     window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`)
   }, [role, room])
+
+  if (new URLSearchParams(window.location.search).has('preview')) return <SignPreview query={window.location.search} />
 
   return (
     <div className="min-h-dvh w-full bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${bgImg})` }}>

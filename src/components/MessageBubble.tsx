@@ -26,13 +26,12 @@ export function Avatar({ role, className = 'h-10 w-10' }: { role: Role; classNam
 
 /**
  * Messenger-style bubble. What each side sees:
- *  - Doctor: sent = text + MSL animation; received = text only.
- *  - Patient: sent and received = MSL animation only.
+ *  DEMO: both sides see every message as MSL animation + text.
  */
 export default function MessageBubble({ message, viewer, delivered, groupEnd, groupStart }: Props) {
   const mine = message.from === viewer
-  const showText = viewer === 'doctor'
-  const showSign = viewer === 'patient' || mine
+  const showText = true
+  const showSign = true
   const who = mine ? 'သင်' : SENDER[message.from]
 
   const meta = (

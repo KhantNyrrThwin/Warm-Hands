@@ -12,6 +12,14 @@ const SIGN_TEXT: Record<SignId, string[]> = {
   help: ['ကူညီပါ', 'help'],
   medicine: ['ဆေး', 'medicine'],
   sick: ['နေမကောင်း', 'နေမကောင်းပါ', 'ဖျား', 'sick'],
+  what_happened: ['ဘာဖြစ်လို့လဲ', 'ဘာဖြစ်လဲ', 'what happened'],
+  stomach_ache: ['အစာအိမ်နာ', 'stomach ache'],
+  how: ['ဘယ်လို', 'how'],
+  drink: ['သောက်', 'drink'],
+  eat: ['စား', 'eat'],
+  finished: ['ပြီး', 'finished'],
+  five: ['၅', '5', 'five'],
+  minute: ['မိနစ်', 'minute'],
 }
 
 export const isMingalarbar = (text: string) => matchSign(text) === 'hello'
@@ -45,6 +53,12 @@ export type GlossId =
   | 'sick'
   | 'mother'
   | 'father'
+  | 'what_happened'
+  | 'stomach_ache'
+  | 'how'
+  | 'finished'
+  | 'five'
+  | 'minute'
 
 const ANIMATED = new Set<GlossId>(ANIMATED_SIGN_IDS)
 
@@ -71,7 +85,7 @@ const GLOSSES: Gloss[] = [
   { id: 'hospital', my: 'ဆေးရုံ', en: 'Hospital', forms: ['ဆေးရုံ', 'hospital'] },
   { id: 'pain', my: 'နာကျင်', en: 'Pain', forms: ['နာကျင်', 'pain'] },
   { id: 'water', my: 'ရေ', en: 'Water', forms: ['ရေ', 'water'] },
-  { id: 'eat', my: 'စား', en: 'Eat', forms: ['စား', 'eat'] },
+  { id: 'eat', my: 'စား', en: 'Eat', forms: ['အစာစား', 'စား', 'eat'] },
   { id: 'drink', my: 'သောက်', en: 'Drink', forms: ['သောက်', 'drink'] },
   { id: 'toilet', my: 'အိမ်သာ', en: 'Toilet', forms: ['အိမ်သာ', 'toilet'] },
   { id: 'name', my: 'နာမည်', en: 'Name', forms: ['နာမည်', 'name'] },
@@ -80,13 +94,19 @@ const GLOSSES: Gloss[] = [
   { id: 'sick', my: 'နေမကောင်းပါ', en: 'Sick', forms: ['နေမကောင်း', 'ဖျား', 'sick'] },
   { id: 'mother', my: 'အမေ', en: 'Mother', forms: ['အမေ', 'mother'] },
   { id: 'father', my: 'အဖေ', en: 'Father', forms: ['အဖေ', 'father'] },
+  { id: 'what_happened', my: 'ဘာဖြစ်လို့လဲ', en: 'What happened', forms: ['ဘာဖြစ်လို့လဲ', 'ဘာဖြစ်လဲ', 'ဘာဖြစ်', 'what happened'] },
+  { id: 'stomach_ache', my: 'အစာအိမ်နာ', en: 'Stomach ache', forms: ['အစာအိမ်နာ', 'stomach ache', 'stomachache'] },
+  { id: 'how', my: 'ဘယ်လို', en: 'How', forms: ['ဘယ်လို', 'how'] },
+  { id: 'finished', my: 'ပြီး', en: 'Finished / after', forms: ['ပြီး', 'after', 'finished'] },
+  { id: 'five', my: '၅', en: 'Five', forms: ['၅', '5', 'five'] },
+  { id: 'minute', my: 'မိနစ်', en: 'Minute', forms: ['မိနစ်', 'minutes', 'minute'] },
 ]
 
 const BY_ID = Object.fromEntries(GLOSSES.map((gloss) => [gloss.id, gloss])) as Record<GlossId, Gloss>
 
 // Spoken extras that are not their own signs. Stripped after a gloss is found
 // so ကူညီပေးပါနော် and ကူညီပါ both become the help sign.
-const PARTICLES = ['ကို', '၍', 'ခင်ဗျား', 'ခင်ဗျာ', 'ပါတယ်', 'နော်', 'ပေး', '၍', 'ပါ', 'ရှင့်', 'ရှင်', 'ဗျာ', 'ဗျ', 'ဦး', 'လား', 'တယ်', 'သည်', 'ဘူး', 'ကွာ', 'နဲ့', 'နှင့်']
+const PARTICLES = ['ရမလဲ', 'လို့', 'မှာ', 'လဲ', 'ကို', '၍', 'ခင်ဗျား', 'ခင်ဗျာ', 'ပါတယ်', 'နော်', 'ပေး', '၍', 'ပါ', 'ရှင့်', 'ရှင်', 'ဗျာ', 'ဗျ', 'ဦး', 'လား', 'တယ်', 'သည်', 'ဘူး', 'ကွာ', 'နဲ့', 'နှင့်']
 
 const isGap = (char: string) => /[\s.,!?;:'"()[\]{}။၊]/.test(char)
 
