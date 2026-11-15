@@ -37,21 +37,41 @@ const HOOK: HandShape = {
 }
 /** Fingertips gathered with the thumb, holding a little rice. */
 const BUNCH: HandShape = {
-  curl: { thumb: [.3, .3, .2], index: [.75, .45, .25], middle: [.75, .45, .25], ring: [.8, .45, .25], pinky: [.85, .45, .25] },
-  spread: { index: .06, ring: -.06, pinky: -.12 },
-  thumbOpposition: 1,
+  curl: { 
+    thumb: [.12, .18, .12], 
+    index: [.18, .28, .22], 
+    middle: [.18, .28, .22], 
+    ring: [.21, .28, .22], 
+    pinky: [.24, .28, .22] 
+  },
+  spread: { index: -.05, ring: .04, pinky: .09 },
+  thumbOpposition: .65,
 }
-/** Bunched fingers with the thumb pushed forward (pushing food into the mouth). */
+
+/** Bunched fingers with the thumb pushed forward into the mouth. */
 const PUSH: HandShape = {
-  curl: { thumb: [.05, .05, 0], index: [.7, .4, .2], middle: [.7, .4, .2], ring: [.75, .4, .2], pinky: [.8, .4, .2] },
-  spread: { index: .06, ring: -.06, pinky: -.12 },
-  thumbOpposition: .5,
+  curl: { 
+    thumb: [.04, .06, 0], 
+    index: [.14, .22, .18], 
+    middle: [.14, .22, .18], 
+    ring: [.17, .22, .18], 
+    pinky: [.2, .22, .18] 
+  },
+  spread: { index: -.05, ring: .04, pinky: .09 },
+  thumbOpposition: .35,
 }
-/** Fingers scooping the plate. */
+
+/** Soft flat scoop shape for taking from the plate. */
 const SCOOP: HandShape = {
-  curl: { thumb: [.15, .1, .05], index: [.35, .25, .1], middle: [.35, .25, .1], ring: [.4, .25, .1], pinky: [.45, .25, .1] },
-  spread: { index: .02, ring: -.02, pinky: -.05 },
-  thumbOpposition: .6,
+  curl: { 
+    thumb: [.05, .05, 0], 
+    index: [.12, .18, .12], 
+    middle: [.12, .18, .12], 
+    ring: [.14, .18, .12], 
+    pinky: [.16, .18, .12] 
+  },
+  spread: { index: .02, ring: -.02, pinky: -.04 },
+  thumbOpposition: .4,
 }
 /** C-shaped grip around a cup of water. */
 const CUP: HandShape = {
@@ -60,9 +80,15 @@ const CUP: HandShape = {
   thumbOpposition: .8,
 }
 const PILL: HandShape = {
-  curl: { thumb: [.3, .35, .2], index: [.15, .1, .05], middle: [1, 1.1, .7], ring: [.2, .15, .1], pinky: [.25, .2, .1] },
-  spread: { index: -.1, ring: .1, pinky: .2 },
-  thumbOpposition: .9,
+  curl: { 
+    thumb: [.35, .35, .2], 
+    index: [.15, .85, .05], 
+    middle: [.85, .9, .6], 
+    ring: [.85, .9, .6], 
+    pinky: [.85, .9, .6] 
+  },
+  spread: { index: -.05, ring: .05, pinky: .1 },
+  thumbOpposition: .7,
 }
 const CLASP: HandShape = {
   curl: { thumb: [.3, .3, .2], index: [.85, .8, .5], middle: [.85, .8, .5], ring: [.85, .8, .5], pinky: [.85, .8, .5] },
@@ -70,8 +96,21 @@ const CLASP: HandShape = {
   thumbOpposition: .4,
 }
 
-const arm = (wrist: number[], direction: number[], palm: number[], handShape: HandShape, elbow?: number[]): ArmPose =>
-  ({ wrist, direction, palm, gather: 0, handShape, ...(elbow ? { elbow } : {}) })
+// Negate palm coordinates so back-of-hand becomes palm-side normal (and vice versa)
+const arm = (
+  wrist: number[], 
+  direction: number[], 
+  palm: number[], 
+  handShape: HandShape, 
+  elbow?: number[]
+): ArmPose => ({
+  wrist,
+  direction,
+  palm: [-palm[0], -palm[1], -palm[2]], // <-- Inverted here
+  gather: 0,
+  handShape,
+  ...(elbow ? { elbow } : {})
+})
 
 /** Mirror a pose onto the other arm (rest poses map to the other rest pose). */
 const mirror = (pose: ArmPose): ArmPose => pose === L ? R : pose === R ? L : ({
@@ -88,8 +127,8 @@ const rest = (time: number): SignPose => ({ time, left: L, right: R })
 const at = (pose: ArmPose, wrist: number[]): ArmPose => ({ ...pose, wrist })
 
 // ---- ဘယ်လို / how : backs of the hands out, then open outward to palms up ------
-const flipIn = arm([-.42, 3.2, .7], [.15, .97, .12], [.05, .08, .99], OPEN, [-1.3, 2.9, .1])
-const flipOut = arm([-1.0, 3.0, .85], [-.8, .2, .55], [.05, -.97, -.2], OPEN, [-1.35, 2.75, .1])
+const flipIn = arm([-.42, 3.2, .7], [.15, .97, .12], [-.05, -.08, -.99], OPEN, [-1.3, 2.9, .1])
+const flipOut = arm([-1.0, 3.0, .85], [-.8, .2, .55], [.05, .97, .2], OPEN, [-1.35, 2.75, .1])
 
 function flips(start: number, count: number, beat = .45): SignPose[] {
   const poses: SignPose[] = []
@@ -155,9 +194,9 @@ const medicine: SignPose[] = [
 ]
 
 // ---- သောက် / drink : lift a cup to the mouth, turn and tip it like drinking ----
-const cupLow = arm([-.42, 3.35, 1.0], [.5, .3, .8], [-.8, 0, .55], CUP, [-1.3, 2.85, .1])
-const cup = arm([-.2, 4.2, 1.15], [.6, .3, .75], [-.75, 0, .6], CUP, [-1.3, 3.0, .25])
-const cupTip = arm([-.18, 4.34, 1.08], [.55, .65, .5], [-.75, .1, .65], CUP, [-1.3, 3.1, .3])
+const cupLow = arm([-.42, 3.35, 1.0], [.5, .3, .8], [.8, 0, .55], CUP, [-1.3, 2.75, .1])
+const cup = arm([-.2, 4.2, 1.15], [.6, .3, .75], [.75, 0, .6], CUP, [-1.3, 2.9, .25])
+const cupTip = arm([-.18, 4.34, 1.08], [.55, .65, .5], [.75, -.1, .65], CUP, [-1.3, 3.0, .3])
 export const DRINK_DURATION = 3.2
 const drink: SignPose[] = [
   rest(0), rest(.15),
@@ -171,10 +210,11 @@ const drink: SignPose[] = [
 
 // ---- စား / eat : eating rice with the fingers -- scoop from the plate, lift,
 // thumb pushes the food into the mouth --------------------------------------------
-const plate = arm([-.42, 3.0, 1.0], [.15, -.1, .98], [0, 1, .1], SCOOP, [-1.3, 2.75, .1])
-const gather = arm([-.38, 3.05, .95], [.15, .1, .98], [0, 1, 0], BUNCH, [-1.3, 2.75, .1])
-const lift = arm([-.2, 4.26, 1.12], [.12, .5, -.85], [0, -.85, -.5], BUNCH, [-1.3, 3.0, .35])
-const mouth = arm([-.14, 4.42, 1.08], [.1, .45, -.88], [0, -.88, -.45], PUSH, [-1.3, 3.05, .35])
+const plate = arm([-.42, 3.0, 1.0], [.15, -.1, .98], [.2, .9, .3], SCOOP, [-1.3, 2.75, .1])
+const gather = arm([-.38, 3.05, .95], [.15, .1, .98], [.2, .9, .3], BUNCH, [-1.3, 2.75, .1])
+const lift = arm([-.28, 4.26, 1.12], [.2, .5, -.85], [.35, -.7, -.6], BUNCH, [-1.35, 3.0, .35])
+const mouth = arm([-.22, 4.42, 1.08], [.2, .45, -.88], [.35, -.7, -.55], PUSH, [-1.35, 3.05, .35])
+
 export const EAT_DURATION = 3.6
 const eat: SignPose[] = [
   rest(0), rest(.15),

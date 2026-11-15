@@ -52,7 +52,7 @@ export function createHandArticulation(model: Object3D) {
           const opposition = lerp(clamp(a.thumbOpposition ?? 0, 0, 1), clamp(b.thumbOpposition ?? 0, 0, 1))
           bones[0].quaternion.multiply(new Quaternion().setFromAxisAngle(y, opposition * (side === 'L' ? -.8 : .8)))
         }
-        bones.forEach((bone, i) => bone.quaternion.multiply(new Quaternion().setFromAxisAngle(x, lerp(clamp(ca[i], 0, limits[i]), clamp(cb[i], 0, limits[i])))))
+        bones.forEach((bone, i) => bone.quaternion.multiply(new Quaternion().setFromAxisAngle(x, -lerp(clamp(ca[i], 0, limits[i]), clamp(cb[i], 0, limits[i])))))
       }
       model.updateMatrixWorld(true)
     },
