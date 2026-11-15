@@ -1,5 +1,7 @@
 # Warm Hands 3D avatar and Mingalarbar greeting
 
+For splitting **100 signs across three people** (one file per sign, assignment tables, beginner steps), see [3D-avatar-100-signs.md](./3D-avatar-100-signs.md).
+
 The main view loads `public/models/WarmHands_Character.glb` with Three.js. Enter **မင်္ဂလာပါ** and press the orange Send button to play the greeting. Surrounding whitespace and zero-width keyboard characters are accepted. Other text shows a prompt instead of playing an unrelated sign.
 
 The 5.05-second sequence follows the user's signing video, with the idle lead-in and ending trimmed. The images in `src/assets/Mingalarpar` remain supplementary references:
