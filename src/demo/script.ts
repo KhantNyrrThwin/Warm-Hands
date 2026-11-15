@@ -16,8 +16,8 @@ export const DEMO_SCRIPT: DemoLine[] = [
   { from: 'doctor', text: 'ဘာဖြစ်လို့လဲ' },
   { from: 'patient', text: 'အစာအိမ်နာလို့', words: [{ id: 'stomach_ache', label: 'အစာအိမ်နာ' }] },
   { from: 'doctor', text: 'ဆေးသောက်ပါ' },
-  { from: 'patient', text: 'ဘယ်လိုသောက်ရမလဲ', words: [{ id: 'how', label: 'ဘယ်လို' }, { id: 'drink', label: 'သောက်' }] },
-  { from: 'doctor', text: 'အစာစားပြီး ၅ မိနစ်မှာ သောက်ပါ' },
+  { from: 'patient', text: 'ဘယ်လိုသောက်ရမလဲ', words: [{ id: 'how', label: 'ဘယ်လို' }, { id: 'drink', label: 'သောက်' }] }
+ // { from: 'doctor', text: 'အစာစားပြီး ၅ မိနစ်မှာ သောက်ပါ' },
 ]
 
 export const DOCTOR_LINES = DEMO_SCRIPT.filter((line) => line.from === 'doctor')
