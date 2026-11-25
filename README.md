@@ -1,90 +1,56 @@
-# React + TypeScript + Vite
+# Warm Hands
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Warm Hands is a React/Vite clinic-conversation app for a doctor and patient. It includes an optional local FastAPI service for Myanmar Sign Language camera recognition and message relay.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js 20 or newer (Node 22 LTS recommended)
+- Python 3.10 or newer for the AI service
 
-## React Compiler
+## Run the web app
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```powershell
+cd Warm-Hands
+npm.cmd ci
+npm.cmd run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open the URL printed by Vite. The app can still demonstrate the two-device conversation in two tabs when the AI service is unavailable.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Run with camera recognition and a second device
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Create a virtual environment using a supported Python version, then install the requirements:
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+npm.cmd run dev:ai
+npm.cmd run dev:clinic
 ```
-"# Warm-Hands" 
 
-## Clinic conversation (doctor ↔ patient on two devices)
+`dev:clinic` uses HTTPS and listens on the local network so phone browsers can use the camera and microphone. Accept Vite's local development certificate warning on the patient device. The doctor creates a four-digit room code; the patient opens the displayed LAN address and joins it.
 
-1. On the clinic computer start the AI server (`npm run dev:ai`) and the web app for the local network: `npm run dev:clinic` (HTTPS, required for camera and microphone on the second device).
-2. Connect both devices to the same Wi‑Fi or phone hotspot.
-3. Doctor device: choose **ဆရာဝန် / Doctor** → *အခန်းအသစ် ဖွင့်ရန်*. The screen shows a 4‑digit room code and the address for the patient device.
-4. Patient device: open that address (accept the self-signed certificate warning), choose **လူနာ / Patient** and enter the code.
+## Checks
 
-What each side sees (Messenger-style chat; every MSL message is its own looping character animation inside the bubble):
+```powershell
+npm.cmd run build
+npm.cmd run lint
+npm.cmd test
+```
 
-| | Sent messages (right) | Received messages (left) |
-|---|---|---|
-| Doctor (types or speaks) | text + MSL animation | patient's recognised text |
-| Patient (signs to camera) | MSL animation only | doctor's message as MSL animation only |
+The Node test command exercises the character animation and does not require Bun. Python tests require the AI virtual environment and can be run with:
 
-Service seams: `src/api/translation.ts` (text → MSL), `src/animation/signRenderer.ts` (one shared 3D renderer drawing every bubble's animation), `src/hooks/useSignCapture.ts` (camera → MSL recognition over `/api/live`), `src/api/conversation.ts` (room relay over `/api/room/{code}`, falls back to two tabs on one device when the AI server is not running).
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests pytests -q
+```
+
+## Useful scripts
+
+| Command | Purpose |
+| --- | --- |
+| `npm.cmd run dev` | Start the local Vite app |
+| `npm.cmd run dev:ai` | Start FastAPI on port 8000 |
+| `npm.cmd run dev:clinic` | Start HTTPS Vite for local-network devices |
+| `npm.cmd run dev:all` | Start the local AI service and Vite together |
+
+In PowerShell environments that block `npm.ps1`, use `npm.cmd` as shown above.

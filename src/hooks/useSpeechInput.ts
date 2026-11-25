@@ -59,6 +59,7 @@ export function useSpeechInput(
   const errorRef = useRef('')
   const sessionRef = useRef(0)
   const shouldContinueRef = useRef(false)
+  const startRef = useRef<() => void>(() => {})
 
   const finalRef = useRef(onFinal)
   const errorCbRef = useRef(onError)
@@ -159,7 +160,7 @@ export function useSpeechInput(
 
       setTimeout(() => {
         if (!shouldContinueRef.current) return
-        start()
+        startRef.current()
       }, 200)
     }
 
@@ -175,6 +176,10 @@ export function useSpeechInput(
       )
     }
   }, [])
+
+  useEffect(() => {
+    startRef.current = start
+  }, [start])
 
   const stop = useCallback(() => {
     shouldContinueRef.current = false

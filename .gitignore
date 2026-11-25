@@ -38,3 +38,10 @@ manual-assets.zip
 
 # MSL 77 recordings (large; share as zip via build_dataset.py export)
 data/msl77/
+
+# Local avatar check scripts (not part of the app)
+tools/avatar/_*.mjs
+tools/avatar/render.html
+tools/avatar/render.ts
+tools/avatar/shot.sh
+tools/avatar/last_build.json
