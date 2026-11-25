@@ -1,5 +1,6 @@
 import { planSigns } from '../animation/greetingInput'
 import type { SignId } from '../animation/signs'
+import { RECORDED_LABELS } from '../animation/clips/recorded.generated'
 
 /**
  * Text → Myanmar Sign Language translation used for the doctor's messages
@@ -73,6 +74,7 @@ const SIGN_LABELS: Record<SignId, string> = {
   gram: 'ဂရမ်',
   cough: 'ချောင်းဆိုး',
   toothache: 'သွားကိုက်',
+  ...RECORDED_LABELS,
 }
 
 export const signLabel = (id: SignId) => SIGN_LABELS[id] ?? id

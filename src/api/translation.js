@@ -1,4 +1,5 @@
 import { planSigns } from '../animation/greetingInput';
+import { RECORDED_LABELS } from '../animation/clips/recorded.generated';
 export async function translateTextToSigns(text) {
     const plan = planSigns(text);
     return {
@@ -53,5 +54,6 @@ const SIGN_LABELS = {
     gram: 'ဂရမ်',
     cough: 'ချောင်းဆိုး',
     toothache: 'သွားကိုက်',
+    ...RECORDED_LABELS,
 };
 export const signLabel = (id) => SIGN_LABELS[id] ?? id;

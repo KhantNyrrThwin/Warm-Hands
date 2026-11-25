@@ -1,5 +1,25 @@
 import { ANIMATED_SIGN_IDS } from './signs';
+import { RECORDED_ENGLISH, RECORDED_LABELS, RECORDED_SIGN_IDS, RECORDED_TEXT } from './clips/recorded.generated';
 const clean = (text) => text.normalize('NFC').replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+/**
+ * Myanmar digits and number words for the number signs. Kept here, not in
+ * recorded.generated.ts, because that file is rewritten by the build tool.
+ */
+const NUMBER_WORDS = {
+    num_0: ['၀', 'သုည'],
+    num_1: ['၁', 'တစ်'],
+    num_2: ['၂', 'နှစ်'],
+    num_3: ['၃', 'သုံး'],
+    num_4: ['၄', 'လေး'],
+    five: ['ငါး'],
+    num_6: ['၆', 'ခြောက်'],
+    num_7: ['၇', 'ခုနစ်', 'ခုနှစ်'],
+    num_8: ['၈', 'ရှစ်'],
+    num_9: ['၉', 'ကိုး'],
+    num_10: ['၁၀', 'တစ်ဆယ်', 'ဆယ်'],
+};
+/** The recorded signs' own words plus any extra Myanmar forms. */
+const recordedForms = (id) => [...RECORDED_TEXT[id], ...(NUMBER_WORDS[id] ?? [])];
 const SIGN_TEXT = {
     headache: ['ခေါင်းကိုက်', 'ခေါင်းကိုက်ပါ', 'headache'],
     i: ['ကျွန်တော်', 'ကျွန်ုပ်', 'ကျွန်မ', 'i'],
@@ -20,7 +40,7 @@ const SIGN_TEXT = {
     finished: ['ပြီး', 'finished'],
     have_you_finished: ['ပြီးပြီလား', 'have you finished', 'have you finished?', 'have you done', 'have you done?'],
     unfinished: ['unfinished', 'not finished', 'not yet', 'မပြီးသေး'],
-    five: ['၅', '5', 'five'],
+    five: ['၅', '5', 'five', 'ငါး'],
     minute: ['မိနစ်', 'minute'],
     doctor: ['ဆရာဝန်', 'doctor'],
     nurse: ['သူနာပြု', 'nurse'],
@@ -46,6 +66,7 @@ const SIGN_TEXT = {
     gram: ['ဂရမ်', 'gram', 'grams'],
     cough: ['ချောင်းဆိုး', 'cough', 'coughing'],
     toothache: ['သွားကိုက်', 'toothache', 'tooth ache'],
+    ...Object.fromEntries(RECORDED_SIGN_IDS.map((id) => [id, recordedForms(id)])),
 };
 export const isMingalarbar = (text) => matchSign(text) === 'hello';
 export function matchSign(text) {
@@ -114,8 +135,10 @@ const GLOSSES = [
     { id: 'finished', my: 'ပြီး', en: 'Finished / after', forms: ['ပြီး', 'after', 'finished'] },
     { id: 'have_you_finished', my: 'ပြီးပြီလား', en: 'Have you finished?', forms: ['ပြီးပြီလား', 'have you finished', 'have you done', 'finished yet'] },
     { id: 'unfinished', my: 'မပြီးသေး', en: 'Unfinished', forms: ['unfinished', 'not finished', 'not yet', 'မပြီးသေး'] },
-    { id: 'five', my: '၅', en: 'Five', forms: ['၅', '5', 'five'] },
+    { id: 'five', my: '၅', en: 'Five', forms: ['၅', '5', 'five', 'ငါး'] },
     { id: 'minute', my: 'မိနစ်', en: 'Minute', forms: ['မိနစ်', 'minutes', 'minute'] },
+    // Signs from the recorded MSL samples.
+    ...RECORDED_SIGN_IDS.map((id) => ({ id, my: RECORDED_LABELS[id], en: RECORDED_ENGLISH[id], forms: recordedForms(id) })),
 ];
 const BY_ID = Object.fromEntries(GLOSSES.map((gloss) => [gloss.id, gloss]));
 // Spoken extras that are not their own signs. Stripped after a gloss is found

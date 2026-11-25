@@ -6,8 +6,9 @@ import { createSickAnimation, SICK_DURATION } from './sick'
 import { createIAnimation, I_DURATION } from './i'
 import { createHeadacheAnimation, HEADACHE_DURATION } from './headache'
 import { createDemoSignLibrary, DEMO_DURATIONS, DEMO_SIGN_IDS } from './demoSigns'
+import { createRecordedSignLibrary, RECORDED_DURATIONS, RECORDED_SIGN_IDS } from './clips/recorded.generated'
 
-export const ANIMATED_SIGN_IDS = ['hello', 'thank_you', 'please', 'help', 'medicine', 'sick', 'i', 'headache', ...DEMO_SIGN_IDS] as const
+export const ANIMATED_SIGN_IDS = ['hello', 'thank_you', 'please', 'help', 'medicine', 'sick', 'i', 'headache', ...DEMO_SIGN_IDS, ...RECORDED_SIGN_IDS] as const
 export type SignId = (typeof ANIMATED_SIGN_IDS)[number]
 
 const L = REST_LEFT
@@ -121,7 +122,10 @@ const help: SignPose[] = [
 export function createSignLibrary(model: Object3D): Record<SignId, SignAnimation> {
   // Demo clips (and the book's ဆေး medicine sign) override the older ones.
   const demo = createDemoSignLibrary(model)
+  // Clips retargeted from the recorded MSL samples (tools/avatar/build_clips.py).
+  const recorded = createRecordedSignLibrary(model)
   return {
+    ...recorded,
     hello: createMingalarbarAnimation(model),
     thank_you: createSignAnimation(model, thankYou, THANK_YOU_DURATION),
     please: createSignAnimation(model, please, PLEASE_DURATION),
@@ -141,5 +145,6 @@ export const SIGN_DURATIONS: Record<SignId, number> = {
   sick: SICK_DURATION,
   i: I_DURATION,
   headache: HEADACHE_DURATION,
+  ...RECORDED_DURATIONS,
   ...DEMO_DURATIONS,
 }
