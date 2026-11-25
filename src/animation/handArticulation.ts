@@ -12,7 +12,7 @@ export type HandShape = {
 }
 
 const digits: Digit[] = ['thumb', 'index', 'middle', 'ring', 'pinky']
-const limits = [1.4, 1.65, 1.2] as const
+const limits = [Math.PI / 2, 1.65, 1.2] as const
 const clamp = (x: number, min: number, max: number) => Math.max(min, Math.min(max, Number.isFinite(x) ? x : 0))
 const angles = (curl: JointCurl | undefined): readonly number[] =>
   typeof curl === 'number' ? [1.25, 1.45, .9].map((x) => x * clamp(curl, 0, 1)) : curl ?? [0, 0, 0]

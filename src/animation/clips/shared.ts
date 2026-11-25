@@ -1,4 +1,4 @@
-import { Bone, Quaternion, Vector3, type Object3D } from 'three'
+import { Bone, Mesh, MeshStandardMaterial, Quaternion, SphereGeometry, Vector3, type Object3D } from 'three'
 import { createSignAnimation, REST_LEFT, REST_RIGHT, type ArmPose, type SignAnimation, type SignPose } from '../armPlayback'
 import type { HandShape } from '../handArticulation'
 
@@ -130,8 +130,11 @@ export const flipOut = arm([-1.0, 3.0, .85], [-.8, .2, .55], [.05, .97, .2], OPE
  * Torso and head keys, in radians, in the final (right-handed) frame.
  * turn: whole upper body twists toward the viewer's right (+) or left (-).
  * lean: chest leans forward (+). headTurn / nod (+ = chin down) / tilt (+ = ear to the right).
+ * shrug: extra lift (radians) of the shoulder on the side of the higher hand,
+ * applied before the arm is solved, so the hand can reach higher (e.g. the forehead).
+ * mouth: how far the mouth is open, 0 (closed) to 1 (wide open).
  */
-export type BodyKey = { time: number; turn?: number; lean?: number; headTurn?: number; nod?: number; tilt?: number }
+export type BodyKey = { time: number; turn?: number; lean?: number; headTurn?: number; nod?: number; tilt?: number; shrug?: number; mouth?: number }
 
 export const questionBody = (start: number, end: number, duration: number): BodyKey[] => [
   { time: 0 }, { time: start - .4 },
@@ -144,14 +147,48 @@ const smoother = (x: number) => x * x * x * (x * (x * 6 - 15) + 10)
 const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x))
 
 function sampleBody(keys: BodyKey[], seconds: number) {
-  const fields = ['turn', 'lean', 'headTurn', 'nod', 'tilt'] as const
+  const fields = ['turn', 'lean', 'headTurn', 'nod', 'tilt', 'shrug', 'mouth'] as const
   const i = keys.findIndex((key) => key.time >= seconds)
-  const out = { turn: 0, lean: 0, headTurn: 0, nod: 0, tilt: 0 }
+  const out = { turn: 0, lean: 0, headTurn: 0, nod: 0, tilt: 0, shrug: 0, mouth: 0 }
   if (i <= 0) return out
   const a = keys[i - 1], b = keys[i]
   const k = smoother((seconds - a.time) / (b.time - a.time))
   for (const field of fields) out[field] = (a[field] ?? 0) + ((b[field] ?? 0) - (a[field] ?? 0)) * k
   return out
+}
+
+/** Name of the mouth-opening mesh added to the head (the model has no jaw bone or mouth shape). */
+export const MOUTH_OPENING = 'mouthOpening'
+
+/**
+ * The character's mouth is a closed smile with no jaw bone, so an open mouth is
+ * drawn as a dark, flattened ellipsoid set into the face over the lips and
+ * attached to the head bone (it follows nods, tilts and turns). Its height
+ * scales with how open the mouth is. Created once per model.
+ */
+function mouthOpening(model: Object3D): { set: (open: number) => void } {
+  const head = model.getObjectByName('head')
+  if (!head) return { set: () => {} }
+  let mesh = head.getObjectByName(MOUTH_OPENING) as Mesh | undefined
+  if (!mesh) {
+    // Built at the rest pose: centered on the lips, set back so only its front
+    // pokes out of the face and follows the face's curve.
+    mesh = new Mesh(new SphereGeometry(1, 24, 12), new MeshStandardMaterial({ color: 0x3b1616, roughness: 1 }))
+    mesh.name = MOUTH_OPENING
+    mesh.scale.set(.15, .075, .1)
+    model.updateMatrixWorld(true)
+    mesh.position.copy(model.localToWorld(new Vector3(0, 4.79, .6)))
+    head.attach(mesh)
+    mesh.userData.height = mesh.scale.y
+    mesh.visible = false
+  }
+  const target = mesh
+  return {
+    set: (open: number) => {
+      target.visible = open > .02
+      target.scale.y = target.userData.height * Math.max(open, .02)
+    },
+  }
 }
 
 /** Wrist position of one arm at `seconds`, eased between keys. */
@@ -174,7 +211,8 @@ function createBody(model: Object3D, poses: SignPose[], keys: BodyKey[] = []) {
   const bones = new Map<string, Bone>()
   model.traverse((object) => { if (object instanceof Bone) bones.set(object.name, object) })
   const spine = bones.get('spine'), chest = bones.get('chest'), neck = bones.get('neck'), head = bones.get('head')
-  const clavicles = { left: bones.get('clavicle.L'), right: bones.get('clavicle.R') }
+  // The loader strips dots from node names, so look up both spellings.
+  const clavicles = { left: bones.get('clavicleL') ?? bones.get('clavicle.L'), right: bones.get('clavicleR') ?? bones.get('clavicle.R') }
   const q = new Quaternion(), parent = new Quaternion(), world = new Quaternion()
   const X = new Vector3(1, 0, 0), Y = new Vector3(0, 1, 0), Z = new Vector3(0, 0, 1)
   const rotate = (bone: Bone | undefined, x: number, y: number, z: number) => {
@@ -198,17 +236,26 @@ function createBody(model: Object3D, poses: SignPose[], keys: BodyKey[] = []) {
     const active = Math.max(ar, al)
     const x = (wr[0] * ar + wl[0] * al) / (ar + al + 1e-6)
     const y = (wr[1] * ar + wl[1] * al) / (ar + al + 1e-6)
-    rotateWorld(clavicles.right, Z, .16 * smoother(clamp((wr[1] - 3.2) / 1.0, 0, 1)))
-    rotateWorld(clavicles.left, Z, -.16 * smoother(clamp((wl[1] - 3.2) / 1.0, 0, 1)))
+    const shrug = keys.length ? sampleBody(keys, seconds).shrug : 0
+    const shrugRight = wr[1] >= wl[1] ? shrug : 0, shrugLeft = wr[1] >= wl[1] ? 0 : shrug
+    // The automatic lift of a raised hand's shoulder never ran (the clavicle
+    // lookup used dotted names the loader strips), and every clip was tuned
+    // without it, so it stays off. Only an explicit `shrug` key lifts a shoulder.
+    const AUTO_LIFT = 0
+    rotateWorld(clavicles.right, Z, AUTO_LIFT * smoother(clamp((wr[1] - 3.2) / 1.0, 0, 1)) + shrugRight)
+    rotateWorld(clavicles.left, Z, -AUTO_LIFT * smoother(clamp((wl[1] - 3.2) / 1.0, 0, 1)) - shrugLeft)
     const across = clamp(x / .9, -1, 1)
     rotate(spine, .02 * active, .05 * active * across, 0)
     rotate(chest, .035 * active, .05 * active * across, -.02 * active * across)
     rotate(neck, .02 * active, .04 * active * across, 0)
     rotate(head, .05 * active * clamp((3.6 - y) / 1.0, -1, 1), .05 * active * across, .02 * active * across)
   }
+  const mouth = mouthOpening(model)
   const after = (seconds: number) => {
-    if (!keys.length) return
+    // Every frame of every clip sets the mouth, so it never stays open after a sign.
+    if (!keys.length) { mouth.set(0); return }
     const body = sampleBody(keys, seconds)
+    mouth.set(body.mouth)
     rotate(spine, body.lean * .4, body.turn * .45, 0)
     rotate(chest, body.lean * .6, body.turn * .55, 0)
     rotate(neck, body.nod * .4, body.headTurn * .4, -body.tilt * .4)
@@ -228,15 +275,29 @@ const shiftX = (poses: SignPose[], dx: number): SignPose[] => poses.map(({ time,
   right: right === R ? R : at(right, [right.wrist[0] + dx, right.wrist[1], right.wrist[2]]),
 }))
 
-/** Build one demo clip: mirror onto the right hand, then add body engagement. */
+/** Flip body keys left/right (turns and tilts change sign). */
+const mirrorBody = (keys: BodyKey[]): BodyKey[] => keys.map((key) => ({
+  ...key,
+  ...(key.turn !== undefined ? { turn: -key.turn } : {}),
+  ...(key.headTurn !== undefined ? { headTurn: -key.headTurn } : {}),
+  ...(key.tilt !== undefined ? { tilt: -key.tilt } : {}),
+}))
+
+/**
+ * Build one demo clip: mirror onto the right hand, then add body engagement.
+ * `hand: 'left'` keeps the book-frame poses on the character's left hand
+ * instead (the whole sign, both arms and body keys, mirrored).
+ */
 export function createDemoClip(
   model: Object3D,
   authored: SignPose[],
   duration: number,
   keys: BodyKey[] = [],
   dx = 0,
+  hand: 'right' | 'left' = 'right',
 ): SignAnimation {
-  const poses = shiftX(toRightHand(authored), dx)
-  const body = createBody(model, poses, keys)
+  const left = hand === 'left'
+  const poses = shiftX(left ? authored : toRightHand(authored), left ? -dx : dx)
+  const body = createBody(model, poses, left ? mirrorBody(keys) : keys)
   return createSignAnimation(model, poses, duration, { continuous: true, ...body })
 }
