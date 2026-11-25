@@ -1,70 +1,44 @@
 import type { Object3D } from 'three'
-import { createSignAnimation, REST_LEFT, REST_RIGHT, type ArmPose, type SignPose } from './armPlayback'
+import type { SignPose } from './armPlayback'
+import { arm, createDemoClip, one, rest, type BodyKey } from './clips/shared'
+import { FLAT } from './clips/shapes'
 
-export const SICK_DURATION = 5.2
+/**
+ * နေမကောင်း / sick, အဖျား / fever : the back of the flat hand is laid on the
+ * forehead, slanted 45°, palm facing forward, held, then taken away.
+ * Signed with the LEFT hand.
+ *
+ * This character's head is large for its arms, so as the hand comes up the
+ * shoulder lifts and the head leans slightly into the hand to meet it.
+ */
+export const SICK_DURATION = 3.2
 
-const relaxed: ArmPose['handShape'] = {
-  curl: { thumb: .2, index: .25, middle: .3, ring: .35, pinky: .4 },
-  thumbOpposition: .15,
-}
-const open: ArmPose['handShape'] = {
-  curl: { thumb: .08, index: .02, middle: .02, ring: .03, pinky: .04 },
-  spread: { index: -.04, middle: 0, ring: .025, pinky: .05 },
-  thumbOpposition: .08,
-}
-
-const forehead: ArmPose = {
-  wrist: [-1.35, 5.8, 1.35], 
-  direction: [-.35, .92, .18], 
-  palm: [-.15, -.15, .97], 
-  gather: .5, 
-  handShape: open,
-  elbow: [2.0, 3.8, .35],
-}
-
-const pose = (time: number, left: ArmPose): SignPose => ({ time, left, right: REST_RIGHT })
+/** Back of the hand on the forehead, fingers slanting up 45° across it, palm facing forward. */
+const FOREHEAD = arm([-.8, 5.4, .8], [.707, .707, 0], [0, 0, 1], FLAT, [-1.75, 4.4, .1])
+const FOREHEAD_IN = arm([-1.05, 4.75, .75], [.6, .8, 0], [0, 0, 1], FLAT, [-1.7, 4.0, .2])
 
 export const SICK_POSES: SignPose[] = [
-  pose(0, REST_LEFT),
-  pose(.2, REST_LEFT),
-  pose(.72, { 
-    wrist: [-1.2, 3.06, .65], 
-    direction: [-.3, .4, .8],
-    palm: [0, .85, -.4], 
-    gather: .12, 
-    handShape: relaxed,
-    elbow: [1.6, 3.0, .2] 
-  }),
-  pose(1.34, { 
-    wrist: [-1.75, 4.20, 1.25], 
-    direction: [.65, .65, -.35], 
-    palm: [-.2, -.1, .95], 
-    gather: .4, 
-    handShape: open,
-    elbow: [2.3, 3.5, .4] 
-  }),
-  pose(2.05, forehead),
-  pose(3.05, forehead),
-  pose(3.67, { 
-    ...forehead, 
-    wrist: [-1.75, 4.40, 1.30],
-    direction: [-.62, .68, .38], 
-    elbow: [2.3, 3.5, .4] 
-  }),
-  pose(4.4, { 
-    wrist: [-1.2, 3.06, .65], 
-    direction: [-.2, .5, .8],
-    palm: [0, .75, .6], 
-    gather: .12, 
-    handShape: relaxed,
-    elbow: [1.6, 3.0, .2] 
-  }),
-  pose(SICK_DURATION, REST_LEFT),
+  rest(0), rest(.15),
+  one(.8, FOREHEAD_IN),
+  one(1.1, FOREHEAD),
+  one(2.1, FOREHEAD),
+  one(2.45, FOREHEAD_IN),
+  rest(SICK_DURATION),
+]
+
+/**
+ * The shoulder lifts (shrug) and the head leans about 17° into the hand while
+ * it rests on the forehead: without that, this character's arm cannot reach
+ * above the eyebrows.
+ */
+const SICK_BODY: BodyKey[] = [
+  { time: 0 }, { time: .35 },
+  { time: 1.05, shrug: .6, tilt: .3, nod: .1 },
+  { time: 2.15, shrug: .6, tilt: .3, nod: .1 },
+  { time: 2.7 },
+  { time: SICK_DURATION },
 ]
 
 export function createSickAnimation(model: Object3D) {
-  return createSignAnimation(model, SICK_POSES, SICK_DURATION, { 
-    continuous: true, 
-    elbowPole: [2.2, 3.0, -.6] 
-  })
+  return createDemoClip(model, SICK_POSES, SICK_DURATION, SICK_BODY, 0, 'left')
 }

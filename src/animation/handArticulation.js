@@ -1,6 +1,6 @@
 import { Bone, Object3D, PropertyBinding, Quaternion, Vector3 } from 'three';
 const digits = ['thumb', 'index', 'middle', 'ring', 'pinky'];
-const limits = [1.4, 1.65, 1.2];
+const limits = [Math.PI / 2, 1.65, 1.2];
 const clamp = (x, min, max) => Math.max(min, Math.min(max, Number.isFinite(x) ? x : 0));
 const angles = (curl) => typeof curl === 'number' ? [1.25, 1.45, .9].map((x) => x * clamp(curl, 0, 1)) : curl ?? [0, 0, 0];
 export const HAND_SHAPES = {
