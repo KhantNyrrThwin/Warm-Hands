@@ -6,7 +6,34 @@ import { createIAnimation, I_DURATION } from './i';
 import { createHeadacheAnimation, HEADACHE_DURATION } from './headache';
 import { createDemoSignLibrary, DEMO_DURATIONS, DEMO_SIGN_IDS } from './demoSigns';
 import { createRecordedSignLibrary, RECORDED_DURATIONS, RECORDED_SIGN_IDS } from './clips/recorded.generated';
-export const ANIMATED_SIGN_IDS = ['hello', 'thank_you', 'please', 'help', 'medicine', 'sick', 'i', 'headache', ...DEMO_SIGN_IDS, ...RECORDED_SIGN_IDS];
+import { ALLERGIES_DURATION, createAllergiesAnimation } from './clips/allergies'
+import { AIDS_DURATION, createAidsAnimation } from './clips/aids'
+import { ASTHMA_DURATION, createAsthmaAnimation } from './clips/asthma'
+import { AVOID_DURATION, createAvoidAnimation } from './clips/avoid'
+import { BITTER_DURATION, createBitterAnimation } from './clips/bitter'
+import { BRAIN_DURATION, createBrainAnimation } from './clips/brain'
+import { CHOLERA_DURATION, createCholeraAnimation } from './clips/cholera'
+import { createDiseaseAnimation, DISEASE_DURATION } from './clips/disease'
+import { createHaveAnimation, HAVE_DURATION } from './clips/have'
+import { createHaveQuestionAnimation, HAVE_QUESTION_DURATION } from './clips/have_question'
+import { createHeartAnimation, HEART_DURATION } from './clips/heart'
+import { createKyatAnimation, KYAT_DURATION } from './clips/kyat'
+import { createLargeIntestineAnimation, LARGE_INTESTINE_DURATION } from './clips/large_intestine'
+import { createLiverAnimation, LIVER_DURATION } from './clips/liver'
+import { createLungsAnimation, LUNGS_DURATION } from './clips/lungs'
+import { createManyAnimation, MANY_DURATION } from './clips/many'
+import { createMuscleAnimation, MUSCLE_DURATION } from './clips/muscle'
+import { createNotHaveAnimation, NOT_HAVE_DURATION } from './clips/not_have'
+import { createOilyAnimation, OILY_DURATION } from './clips/oily'
+import { createSaltyAnimation, SALTY_DURATION } from './clips/salty'
+import { createSmallIntestineAnimation, SMALL_INTESTINE_DURATION } from './clips/small_intestine'
+import { createSpicyAnimation, SPICY_DURATION } from './clips/spicy'
+import { createSweetAnimation, SWEET_DURATION } from './clips/sweet'
+import { createThroatAnimation, THROAT_DURATION } from './clips/throat'
+import { createWeightAnimation, WEIGHT_DURATION } from './clips/weight'
+import { createWhoAnimation, WHO_DURATION } from './clips/who'
+
+export const ANIMATED_SIGN_IDS = ['hello', 'thank_you', 'please', 'help', 'medicine', 'sick', 'i', 'headache', 'allergies', 'have_question', 'have', 'not_have', 'avoid', 'oily', 'many', 'salty', 'bitter', 'sweet', 'spicy', 'disease', 'lungs', 'heart', 'aids', 'cholera', 'asthma', 'brain', 'throat', 'muscle', 'liver', 'small_intestine', 'large_intestine', 'weight', 'who', 'kyat', ...DEMO_SIGN_IDS, ...RECORDED_SIGN_IDS];
 const L = REST_LEFT;
 const R = REST_RIGHT;
 const thankYouRight = {
@@ -117,6 +144,32 @@ export function createSignLibrary(model) {
         sick: createSickAnimation(model),
         i: createIAnimation(model),
         headache: createHeadacheAnimation(model),
+        allergies: createAllergiesAnimation(model),
+        have_question: createHaveQuestionAnimation(model),
+        have: createHaveAnimation(model),
+        not_have: createNotHaveAnimation(model),
+        avoid: createAvoidAnimation(model),
+        oily: createOilyAnimation(model),
+        many: createManyAnimation(model),
+        salty: createSaltyAnimation(model),
+        bitter: createBitterAnimation(model),
+        sweet: createSweetAnimation(model),
+        spicy: createSpicyAnimation(model),
+        disease: createDiseaseAnimation(model),
+        lungs: createLungsAnimation(model),
+        heart: createHeartAnimation(model),
+        aids: createAidsAnimation(model),
+        cholera: createCholeraAnimation(model),
+        asthma: createAsthmaAnimation(model),
+        brain: createBrainAnimation(model),
+        throat: createThroatAnimation(model),
+        muscle: createMuscleAnimation(model),
+        liver: createLiverAnimation(model),
+        small_intestine: createSmallIntestineAnimation(model),
+        large_intestine: createLargeIntestineAnimation(model),
+        weight: createWeightAnimation(model),
+        who: createWhoAnimation(model),
+        kyat: createKyatAnimation(model),
         ...demo,
     };
 }
@@ -128,6 +181,32 @@ export const SIGN_DURATIONS = {
     sick: SICK_DURATION,
     i: I_DURATION,
     headache: HEADACHE_DURATION,
+    allergies: ALLERGIES_DURATION,
+    have_question: HAVE_QUESTION_DURATION,
+    have: HAVE_DURATION,
+    not_have: NOT_HAVE_DURATION,
+    avoid: AVOID_DURATION,
+    oily: OILY_DURATION,
+    many: MANY_DURATION,
+    salty: SALTY_DURATION,
+    bitter: BITTER_DURATION,
+    sweet: SWEET_DURATION,
+    spicy: SPICY_DURATION,
+    disease: DISEASE_DURATION,
+    lungs: LUNGS_DURATION,
+    heart: HEART_DURATION,
+    aids: AIDS_DURATION,
+    cholera: CHOLERA_DURATION,
+    asthma: ASTHMA_DURATION,
+    brain: BRAIN_DURATION,
+    throat: THROAT_DURATION,
+    muscle: MUSCLE_DURATION,
+    liver: LIVER_DURATION,
+    small_intestine: SMALL_INTESTINE_DURATION,
+    large_intestine: LARGE_INTESTINE_DURATION,
+    weight: WEIGHT_DURATION,
+    who: WHO_DURATION,
+    kyat: KYAT_DURATION,
     ...RECORDED_DURATIONS,
     ...DEMO_DURATIONS,
 };
