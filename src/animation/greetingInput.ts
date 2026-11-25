@@ -71,6 +71,32 @@ const SIGN_TEXT: Record<SignId, string[]> = {
   gram: ['ဂရမ်', 'gram', 'grams'],
   cough: ['ချောင်းဆိုး', 'cough', 'coughing'],
   toothache: ['သွားကိုက်', 'toothache', 'tooth ache'],
+  allergies: ['မတည့်', 'allergies', 'allergy'],
+  have_question: ['ရှိသလား', 'have question', 'do you have'],
+  have: ['ရှိတယ်', 'have'],
+  not_have: ['မရှိပါ', 'not have', "don't have", 'do not have'],
+  avoid: ['ရှောင်', 'avoid'],
+  oily: ['အဆီ', 'oily'],
+  many: ['များ', 'many'],
+  salty: ['အငန်', 'salty'],
+  bitter: ['အခါး', 'bitter'],
+  sweet: ['အချို', 'sweet'],
+  spicy: ['အစပ်', 'spicy'],
+  disease: ['ရောဂါ', 'disease'],
+  lungs: ['အဆုတ်', 'lungs', 'lung'],
+  heart: ['နှလုံး', 'heart'],
+  aids: ['ခုခံအားကျဆင်းရောဂါ', 'အေအိုင်ဒီအက်စ်', 'aids'],
+  cholera: ['ဝမ်းရောဂါ', 'cholera', 'diarrhea'],
+  asthma: ['ရင်ကြပ်ပန်းနာရောဂါ', 'asthma'],
+  brain: ['ဦးနှောက်', 'brain'],
+  throat: ['လည်ချောင်း', 'throat'],
+  muscle: ['ကြွက်သား', 'muscle', 'muscles'],
+  liver: ['အသည်း', 'liver'],
+  small_intestine: ['အူသိမ်', 'small intestine'],
+  large_intestine: ['အူမကြီး', 'large intestine'],
+  weight: ['အလေးချိန်', 'weight', 'weigh'],
+  who: ['ဘယ်သူ', 'who'],
+  kyat: ['ကျပ်', 'kyat'],
   ...(Object.fromEntries(RECORDED_SIGN_IDS.map((id) => [id, recordedForms(id)])) as Record<(typeof RECORDED_SIGN_IDS)[number], string[]>),
 }
 
@@ -112,6 +138,32 @@ export type GlossId =
   | 'finished'
   | 'five'
   | 'minute'
+  | 'allergies'
+  | 'have_question'
+  | 'have'
+  | 'not_have'
+  | 'avoid'
+  | 'oily'
+  | 'many'
+  | 'salty'
+  | 'bitter'
+  | 'sweet'
+  | 'spicy'
+  | 'disease'
+  | 'lungs'
+  | 'heart'
+  | 'aids'
+  | 'cholera'
+  | 'asthma'
+  | 'brain'
+  | 'throat'
+  | 'muscle'
+  | 'liver'
+  | 'small_intestine'
+  | 'large_intestine'
+  | 'weight'
+  | 'who'
+  | 'kyat'
   | (typeof RECORDED_SIGN_IDS)[number]
 
 const ANIMATED = new Set<GlossId>(ANIMATED_SIGN_IDS)
@@ -181,6 +233,32 @@ const GLOSSES: Gloss[] = [
   { id: 'unfinished', my: 'မပြီးသေး', en: 'Unfinished', forms: ['unfinished', 'not finished', 'not yet', 'မပြီးသေး'] },
   { id: 'five', my: '၅', en: 'Five', forms: ['၅', '5', 'five', 'ငါး'] },
   { id: 'minute', my: 'မိနစ်', en: 'Minute', forms: ['မိနစ်', 'minutes', 'minute'] },
+  { id: 'allergies', my: 'မတည့်', en: 'Allergies', forms: ['မတည့်', 'allergies', 'allergy'] },
+  { id: 'have_question', my: 'ရှိသလား', en: 'Have question', forms: ['ရှိသလား', 'have question', 'do you have'] },
+  { id: 'have', my: 'ရှိတယ်', en: 'Have', forms: ['ရှိတယ်', 'have'] },
+  { id: 'not_have', my: 'မရှိပါ', en: 'Not have', forms: ['မရှိပါ', 'not have', "don't have", 'do not have'] },
+  { id: 'avoid', my: 'ရှောင်', en: 'Avoid', forms: ['ရှောင်', 'avoid'] },
+  { id: 'oily', my: 'အဆီ', en: 'Oily', forms: ['အဆီ', 'ဆီ', 'oily'] },
+  { id: 'many', my: 'များ', en: 'Many', forms: ['များ', 'many'] },
+  { id: 'salty', my: 'အငန်', en: 'Salty', forms: ['အငန်', 'ငန်', 'salty'] },
+  { id: 'bitter', my: 'အခါး', en: 'Bitter', forms: ['အခါး', 'ခါး', 'bitter'] },
+  { id: 'sweet', my: 'အချို', en: 'Sweet', forms: ['အချို', 'ချို', 'sweet'] },
+  { id: 'spicy', my: 'အစပ်', en: 'Spicy', forms: ['အစပ်', 'စပ်', 'spicy'] },
+  { id: 'disease', my: 'ရောဂါ', en: 'Disease', forms: ['ရောဂါ', 'disease'] },
+  { id: 'lungs', my: 'အဆုတ်', en: 'Lungs', forms: ['အဆုတ်', 'lungs', 'lung'] },
+  { id: 'heart', my: 'နှလုံး', en: 'Heart', forms: ['နှလုံး', 'heart'] },
+  { id: 'aids', my: 'ခုခံအားကျဆင်းရောဂါ', en: 'AIDS', forms: ['ခုခံအားကျဆင်းရောဂါ', 'အေအိုင်ဒီအက်စ်', 'aids'] },
+  { id: 'cholera', my: 'ဝမ်းရောဂါ', en: 'Cholera', forms: ['ဝမ်းရောဂါ', 'cholera', 'diarrhea'] },
+  { id: 'asthma', my: 'ရင်ကြပ်ပန်းနာရောဂါ', en: 'Asthma', forms: ['ရင်ကြပ်ပန်းနာရောဂါ', 'asthma'] },
+  { id: 'brain', my: 'ဦးနှောက်', en: 'Brain', forms: ['ဦးနှောက်', 'brain'] },
+  { id: 'throat', my: 'လည်ချောင်း', en: 'Throat', forms: ['လည်ချောင်း', 'throat'] },
+  { id: 'muscle', my: 'ကြွက်သား', en: 'Muscle', forms: ['ကြွက်သား', 'muscle', 'muscles'] },
+  { id: 'liver', my: 'အသည်း', en: 'Liver', forms: ['အသည်း', 'liver'] },
+  { id: 'small_intestine', my: 'အူသိမ်', en: 'Small Intestine', forms: ['အူသိမ်', 'small intestine'] },
+  { id: 'large_intestine', my: 'အူမကြီး', en: 'Large Intestine', forms: ['အူမကြီး', 'large intestine'] },
+  { id: 'weight', my: 'အလေးချိန်', en: 'Weight', forms: ['အလေးချိန်', 'weight', 'weigh'] },
+  { id: 'who', my: 'ဘယ်သူ', en: 'Who', forms: ['ဘယ်သူ', 'who'] },
+  { id: 'kyat', my: 'ကျပ်', en: 'Kyat', forms: ['ကျပ်', 'kyat'] },
   // Signs from the recorded MSL samples.
   ...RECORDED_SIGN_IDS.map((id) => ({ id, my: RECORDED_LABELS[id], en: RECORDED_ENGLISH[id], forms: recordedForms(id) })),
 ]
