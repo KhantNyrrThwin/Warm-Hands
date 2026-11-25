@@ -1,331 +1,107 @@
-# 3D avatar — 100 signs, three animators
+# 3D avatar — the signs marked in the spreadsheet
 
-This is the working list for people who have not authored a clip before. Read this file first. You do **not** need to edit the 3D model (`.glb`). You write one TypeScript file per sign.
+The word list is **Sheet1, column B of `3D model To Train/MSL for Warm Hands.xlsx`**: the words
+marked there (32 words). The build script reads that sheet, so adding or removing a word there and
+re-running `build_avatar_clips.bat` changes which clips are built. Each word maps to its fixed
+**sign id** in `msl77_signs.py`; the clip file and the recorder folder use that id.
 
-## How we tell files apart
-
-**Yes: 100 signs → 100 files.** One clip file per sign.
-
-| Rule | Why |
-|---|---|
-| File name = **sign id** (English snake_case) | `fever.ts` is always fever. Never `aung_fever.ts`. |
-| Sign id never changes after you start | Renaming splits one sign into two, same as the recording data. |
-| Animator name goes in a **comment at the top**, not in the file name | If someone else later polishes the clip, the file stays put. |
-| Each person only creates **their assigned files** | Git merges stay small. |
-
-Do **not** put three people’s work in one giant file (`demoSigns.ts` already became hard to share). Existing clips (`mingalarbar.ts`, `i.ts`, `sick.ts`, `headache.ts`, `signs.ts`, `demoSigns.ts`) stay as they are until someone is assigned to move them.
-
-```
-src/animation/clips/
-  _template.ts          ← copy this, never commit your work into it
-  fever.ts              ← one sign
-  cough.ts
-  ...
-```
-
-Fill in names once, then use them in every file header:
-
-| Slot | Person’s name | GitHub / git user |
+| Status | Signs | Meaning |
 |---|---|---|
-| Animator 1 | | |
-| Animator 2 | | |
-| Animator 3 | | |
+| ✅ from recordings | 30 | Generated from the signer's 30 recorded takes (see below) |
+| ⏺ no recordings | 2 | Not in the recorder's sign list yet, so there is nothing to animate from |
 
----
+## How the clips are made
 
-## Files you create vs files you only edit
+These signs are no longer posed by hand. The recorder already captures the signer's hands and
+arms (MediaPipe landmarks), and a script turns those recordings into avatar clips:
 
-### Create (your assigned signs only)
+1. Record the sign with `collect_data.bat` (30 takes, the same as for training). A word that is
+   not yet in the recorder must first be added at the end of `msl77_signs.py`.
+2. Run **`build_avatar_clips.bat`** (or `build_avatar_clips.bat kachin chin` for a few signs).
+   It takes about a minute and ends by testing every clip.
+3. View them: double-click **`view_avatar_clips.bat`**. It opens the sign gallery
+   (`http://localhost:5199/tools/avatar/gallery.html`), every sign looping. Only the spreadsheet
+   signs: `?show=new`; chosen signs: `?show=kachin,fine`. Still frames:
+   `/tools/avatar/render.html?clip=kachin&times=1.2`.
+4. The clips are not registered in the app itself; the app's own avatar code
+   (`signs.ts`, `greetingInput.ts`, `translation.ts`, `SignPreview.tsx`, `clips/shared.ts`) is left
+   as it was. The clips are exported from `src/animation/clips/recorded.generated.ts`
+   (`createRecordedSignLibrary`, `RECORDED_SIGN_IDS`, labels and durations) for when you decide to add them.
 
-Copy:
+What the script does for each sign (`tools/avatar/`):
 
-`src/animation/clips/_template.ts`
+- **Averages the takes.** It picks the most typical take, time-aligns the others to it (DTW) and
+  takes the median, so one bad take or a briefly lost hand does not spoil the clip.
+- **Hand shape and orientation** come straight from the 21 hand landmarks: wrist direction,
+  palm facing, each finger joint's bend and spread, and the thumb (fitted against the rig).
+- **Position** is mapped onto the character with anchors on the face and torso, because the
+  character has a large head and short arms. A hand at the signer's chin lands on the
+  character's chin.
+- **Depth** cannot be measured from one webcam, so it is set by location: hands over the face,
+  chest or lower torso touch the body, and other hands sit in signing space in front of it.
+  A final pass on the real 3D model pushes any finger out of the face or torso.
+- Each clip starts and ends at rest, lifts out in front of the body, and keeps the signer's timing.
 
-to:
+## What a signer should check
 
-`src/animation/clips/<sign_id>.ts`
+- **Mirrored (left-handed) playback.** Like the hand-authored demo clips, playback mirrors the
+  signer, so the character signs with the hand on the viewer's right. Signs tied to one side of
+  the body (for example `heart`) therefore touch the mirrored side. To show the signer exactly as
+  the camera saw them, set `MIRROR_RECORDED = false` in `src/animation/clips/recorded.ts`.
+- **Forehead and top of the head.** The character's arms cannot reach its forehead, so signs at
+  the forehead touch as high as the arm allows, in front of the upper face.
+- **Depth** is a best guess from location (see above). Check signs where the hand is near the
+  body but should not touch it.
+- Facial expression and mouthing are not animated.
 
-Example: Animator 1 making “fever” creates **only** `src/animation/clips/fever.ts`.
+Have a fluent MSL signer review every clip before it is used with patients.
 
-### Edit (three shared files — add **one line each**, do not rewrite)
+## Polishing one clip by hand
 
-After the clip plays in preview, register it so the app can find it.
+Edit `src/animation/clips/<id>.ts` and delete the words `generated by tools/avatar/build_clips.py`
+from its header. The script then leaves that file alone on every rebuild. Each key is
+`[time, signer's right hand, signer's left hand]`, with `0` for an arm at rest. To freeze a moment,
+open `/tools/avatar/render.html?clip=<id>&times=1.2`.
 
-1. `src/animation/signs.ts`
-   - import your `create…Animation` and `…_DURATION`
-   - add the id to `ANIMATED_SIGN_IDS`
-   - add the factory inside `createSignLibrary`
-   - add the duration inside `SIGN_DURATIONS`
-2. `src/animation/greetingInput.ts`
-   - add Myanmar + English words in `SIGN_TEXT`
-   - add a `GLOSSES` row if the word is new
-3. `src/api/translation.ts`
-   - add the Myanmar label in `SIGN_LABELS`
+## The list
 
-If two people edit those three files on the same day, pull before you push. The clip files themselves should not conflict.
+| # | Myanmar | English | Sign id | Status | Clip |
+|---|---|---|---|---|---|
+| 1 | နေကောင်းလား | | — | ⏺ no recordings | — |
+| 2 | ကောင်းပါတယ် | Fine / good | `fine` | ✋ hand-made thumbs-up (raise, hold still, lower) | src/animation/clips/fine.ts |
+| 3 | သိပ်မကောင်းဘူး | Not very well | `not_very_well` | ✅ from recordings | src/animation/clips/not_very_well.ts |
+| 4 | မကောင်းဘူး | Not good | `not_good` | ✅ from recordings, made shorter by hand: 5.0 s instead of 6.47 s (only the first, nearly still part and the hold before lowering are shortened; the movements keep their recorded speed; rebuilds leave it alone) | src/animation/clips/not_good.ts |
+| 5 | အသက် | Age | `age` | ✅ from recordings, made faster by hand: 3.5 s instead of 5.14 s (the lift from rest and the lowering keep their recorded speed, the slow rise in between is compacted; rebuilds leave it alone) | src/animation/clips/age.ts |
+| 6 | ဘယ်လောက် | How much / how many | `how_much` | ✅ from recordings | src/animation/clips/how_much.ts |
+| 7 | 0 | Zero | `num_0` | ✋ pmt's position and timing, handshape by hand: a round "O" (fingers evenly curved, index fingertip on the thumb tip), upright, palm squarely toward the centre so the viewer looks through the circle; held still; 3.03 s (rebuilds leave it alone) | src/animation/clips/num_0.ts |
+| 8 | 1 | One | `num_1` | ✅ from recordings | src/animation/clips/num_1.ts |
+| 9 | 2 | Two | `num_2` | ✅ from recordings | src/animation/clips/num_2.ts |
+| 10 | 3 | Three | `num_3` | ✅ from recordings | src/animation/clips/num_3.ts |
+| 11 | 4 | Four | `num_4` | ✅ from recordings | src/animation/clips/num_4.ts |
+| 12 | 6 | Six | `num_6` | ✅ from recordings | src/animation/clips/num_6.ts |
+| 13 | 7 | Seven | `num_7` | ✅ from recordings | src/animation/clips/num_7.ts |
+| 14 | 8 | Eight | `num_8` | ✅ from recordings | src/animation/clips/num_8.ts |
+| 15 | 9 | Nine | `num_9` | ✅ from recordings | src/animation/clips/num_9.ts |
+| 16 | 10 | Ten | `num_10` | ✋ pmt's positions and timing, handshapes by hand: the right hand makes Zero's round "O" (same shape, facing the viewer) and the other hand "1" (index up, others closed under the thumb), side by side, held still; 2.89 s (rebuilds leave it alone) | src/animation/clips/num_10.ts |
+| 17 | မွေး | | — | ⏺ no recordings | — |
+| 18 | ကချင် | Kachin | `kachin` | ✋ hand-made from the reference picture, right hand only (bunched fingertips at the hairline → opens upward → "OK" hand at the chest moves out to the right) | src/animation/clips/kachin.ts |
+| 19 | ကယား | Kayah | `kayah` | ✋ hand-made from pmt's 30 recordings (median positions, finger and palm directions): palms down near the shoulders, fingers inward → flip over the top → palms up out to the sides; both hands, 3.5 s | src/animation/clips/kayah.ts |
+| 20 | ကရင် | Kayin | `kayin` | ✋ hand-made from pmt's 30 recordings + the picture, right hand only: flat hand across the forehead (held 1 s) → beside the shoulder, forearm upright, index finger up and hooked (thumb hidden), hand circles horizontally 3× (0.54 s each), hold; 5.4 s | src/animation/clips/kayin.ts |
+| 21 | ချင်း | Chin | `chin` | ✋ hand-made from pmt's 30 recordings + the picture, right hand only: tight fist (thumb across the front) pressed with the back of the hand on the upper forehead, knuckles just right of centre; head still; arm comes up in front of the face; held 1.6 s; 3.9 s | src/animation/clips/chin.ts |
+| 22 | မွန် | Mon | `mon` | ✋ hand-made from pmt's 30 recordings, right hand only: pmt's cupped hand, fingers across to the left, on the centre of the forehead below the hair (in view; top of head out of reach); small head bow; right arm 1.5× while up, the elbow raised out to the side like pmt's (normal at rest); hair gives way if the hand touches it; the thumb lies along the top of the index finger, in view below the hair (hand a little lower on the forehead); while the hand is up the whole character turns ~20° to its own left (like a turntable) so the hand is seen a little from the side, then back to the front; 3.6 s | src/animation/clips/mon.ts |
+| 23 | ရခိုင် | Rakhine | `rakhine` | ✋ hand-made from pmt's 30 recordings, right hand only: hand upright at the centre of the forehead (like Chin, arm in front of the face); palm toward the head with the index half bent, then turns outward to palm forward with the index pointing up (held); head still; right arm 1.25× while up; 4.8 s | src/animation/clips/rakhine.ts |
+| 24 | ရှမ်း | Shan | `shan` | ✅ from recordings, made shorter by hand: 4.0 s instead of 6.13 s (the lift and lowering keep their recorded speed, the movement in between plays faster; rebuilds leave it alone) | src/animation/clips/shan.ts |
+| 25 | စစ်ကိုင်း | Sagaing | `sagaing` | ✅ from recordings, played on the character's right hand, made shorter by hand: 4.0 s instead of 6.24 s (the lift and lowering keep their recorded speed, the movement in between plays faster; rebuilds leave it alone) | src/animation/clips/sagaing.ts |
+| 26 | မန္တလေး | Mandalay | `mandalay` | ✅ from recordings, re-timed so the sign is made twice within 3.9 s; the hand stays still while the fingers open and close (rebuilds leave it alone) | src/animation/clips/mandalay.ts |
+| 27 | မကွေး | Magway | `magway` | ✅ from recordings | src/animation/clips/magway.ts |
+| 28 | ပဲခူး | Bago | `bago` | ✅ from recordings, made shorter by hand: 4.5 s instead of 5.74 s (only the hold up at the side is shortened; the rise, the sweep across and the lowering keep their recorded speed; rebuilds leave it alone) | src/animation/clips/bago.ts |
+| 29 | ရန်ကုန် | Yangon | `yangon` | ✅ from recordings, re-timed: the arm stays still and only the wrist bends down and back up, twice; the index, middle and ring fingers gripped tightly into the palm, the thumb and little finger as recorded; then the hand lowers right away; 4.0 s (rebuilds leave it alone) | src/animation/clips/yangon.ts |
+| 30 | ဧရာဝတီ | Ayeyarwady | `ayeyarwady` | ✋ hand-made from pmt's 30 recordings (mirrored like the others): the base hand comes up in front of the stomach, flat and upright, and does not move; the right hand (index + middle straight, ring + little finger folded under the thumb, palm down) travels sideways away from it while the fingertips zigzag up and down (2 swings each way); 4.2 s (rebuilds leave it alone) | src/animation/clips/ayeyarwady.ts |
+| 31 | တနင်္သာရီ | Tanintharyi | `tanintharyi` | ✅ from recordings, edited by hand: position 1 held shorter (~1.3 s), the right hand is upside down (palm up) at 3.0 s; there the hand stays still and only the fingers and thumb contract a little, twice (fingers ~30 % toward a fist, the thumb bending in toward the palm; 0.4 s each) before it lowers; 4.46 s (plan: Documentations/tanintharyi-sign-plan.md; rebuilds leave it alone) | src/animation/clips/tanintharyi.ts |
+| 32 | နေပြည်တော် | Nay Pyi Taw | `naypyidaw` | ✋ hand-made from pmt's recordings (mirrored like the others): the other hand stands upright, flat, palm toward the centre, and does not move; the right hand is level beside it, palm down, only the index finger pointing at it (held), then closes into a fist as it draws back sideways, still level; fist held; 4.3 s (rebuilds leave it alone) | src/animation/clips/naypyidaw.ts |
+| 33 | နေကောင်းလား | How are you? | `how_are_you` | ✋ hand-made from the reference picture (no recordings), right hand only: 1. flat hand on the forehead, fingers across to the left (head still; arm comes up in front of the face; right arm 1.4× while up) → 2. thumbs-up in front of the right shoulder, head tilted to the side, eyebrows raised; 4.3 s | src/animation/clips/how_are_you.ts |
+| 34 | မွေး | Birth | `birth` | ✋ hand-made from the reference picture (no recordings), both hands (mirror images), VERTICAL throughout: fingers pointing at the ground (angled a little outward), naturally curved, palms facing each other, the two thumbs reaching in and touching in the middle for the whole sign; both move straight down together along the red arrows, keeping the same shape, angle and width; held, then back to rest; never flat or palm up; head and body still; 3.45 s | src/animation/clips/birth.ts |
 
-### Do not create or edit (unless you are assigned that sign)
+**Mirrored to the right hand:** every sign in this table except Kachin, Kayah, Kayin, Chin, Mon, Rakhine, Sagaing and How are you? is played as its mirror image (src/animation/clips/mirrored.ts): one-handed signs use the character's right hand, two-handed signs swap hands. Only the sign is reflected; handshapes and timing are unchanged. build_clips.py writes generated clips the same way.
 
-| File | Role |
-|---|---|
-| `public/models/WarmHands_Character.glb` | The character. Shared by every clip. |
-| `src/animation/armPlayback.ts` | Arm solver. Shared. |
-| `src/animation/handArticulation.ts` | Finger shapes. Shared. Use `HAND_SHAPES` from here. |
-| `src/components/CharacterViewer.tsx` | Viewer. Shared. |
-| `msl77_signs.py` | Official sign **ids**. Do not rename ids. |
-| `src/animation/clips/_template.ts` | Template only. |
-
----
-
-## Step-by-step (new animator)
-
-1. `git pull`
-2. Copy `_template.ts` → `src/animation/clips/<sign_id>.ts`
-3. At the top, write your name and the Myanmar / English gloss from the table below.
-4. Rename `PLACEHOLDER_DURATION` and `createPlaceholderAnimation` to match the id, for example `FEVER_DURATION` and `createFeverAnimation`.
-5. Keep the first and last poses at rest (`REST_LEFT` / `REST_RIGHT`). Put the real signing poses in between.
-6. Register the four places listed above.
-7. Run the app and open the preview URL (see below).
-8. Commit **your clip file** plus the small registry edits.
-
-```sh
-bun install
-bun run dev
-```
-
-Preview one sign (replace `fever` with your id):
-
-```
-http://localhost:5173/?preview=fever
-```
-
-Freeze a moment to check a pose:
-
-```
-http://localhost:5173/?preview=fever&t=1.2
-```
-
-Several moments of the same clip:
-
-```
-http://localhost:5173/?preview=fever&times=.5,1.2,2.0
-```
-
-A sentence of several clips:
-
-```
-http://localhost:5173/?preview=i,fever,medicine&seq
-```
-
----
-
-## How to fill a pose (short)
-
-Each keyframe is: **time in seconds**, **left arm**, **right arm**.
-
-```ts
-{ time: 0.8, left: REST_LEFT, right: raised }
-```
-
-Each arm has:
-
-| Field | Meaning (model space) |
-|---|---|
-| `wrist` | `[x, y, z]` — `+y` up, `+z` toward the camera, `+x` toward the character’s left (viewer’s right) |
-| `direction` | Where the fingers point |
-| `palm` | Back-of-hand normal in older clips; follow `_template.ts` / `HAND_SHAPES` |
-| `handShape` | `HAND_SHAPES.open`, `.fist`, `.point`, `.thumbsUp`, or a custom curl |
-| `elbow` | Optional pole so the elbow bends the natural way |
-
-Hands at rest between signs:
-
-- `REST_RIGHT` / `REST_LEFT` from `armPlayback.ts`
-
-Copy an existing simple clip if you get stuck: `src/animation/i.ts` (one hand to the chest).
-
-Have a fluent MSL signer check handshape and timing before calling a clip done.
-
----
-
-## Already in the app (do not redo unless assigned to polish)
-
-These ids already play. Leave them unless the table says you own a polish pass.
-
-| Sign id in app | Myanmar | Source file today |
-|---|---|---|
-| `hello` | မင်္ဂလာပါ | `src/animation/mingalarbar.ts` (dataset id is `mingalarbar`) |
-| `i` | ကျွန်တော် | `src/animation/i.ts` |
-| `sick` | နေမကောင်း | `src/animation/sick.ts` |
-| `headache` | ခေါင်းကိုက် | `src/animation/headache.ts` |
-| `thank_you` | ကျေးဇူးတင်ပါတယ် | `src/animation/signs.ts` |
-| `please` | ကျေးဇူးပြု | `src/animation/signs.ts` |
-| `help` | ကူညီ | `src/animation/signs.ts` |
-| `medicine` | ဆေး | `src/animation/demoSigns.ts` |
-| `how` | ဘယ်လို | `src/animation/demoSigns.ts` |
-| `drink` | သောက် | `src/animation/demoSigns.ts` |
-| `eat` | စား | `src/animation/demoSigns.ts` |
-| `finished` | ပြီး | `src/animation/demoSigns.ts` |
-| `five` | ၅ | `src/animation/demoSigns.ts` (same meaning as `num_5`) |
-| `minute` | မိနစ် | `src/animation/demoSigns.ts` |
-| `stomach_ache` | အစာအိမ်နာ | `src/animation/demoSigns.ts` |
-| `what_happened` | ဘာဖြစ်လို့လဲ | `src/animation/demoSigns.ts` |
-
-New files still use the **dataset id** from the tables (`mingalarbar`, `num_5`, …). When you register, you may map a dataset id to an existing app id (`hello`) — ask before changing that mapping.
-
----
-
-## Assignment — 100 signs
-
-**Animator 1** = signs 1–34  
-**Animator 2** = signs 35–67  
-**Animator 3** = signs 68–100  
-
-Status: empty = not started. Write `done` or `polish` in your own copy if you track it in git.
-
-### Animator 1 — create `src/animation/clips/<id>.ts`
-
-| # | File to create | Sign id | Myanmar | English | Category | Notes |
-|---|---|---|---|---|---|---|
-| 1 | `src/animation/clips/i.ts` | `i` | ကျွန်တော် | I / me | greeting | Exists as `src/animation/i.ts` — polish only if assigned |
-| 2 | `src/animation/clips/mingalarbar.ts` | `mingalarbar` | မင်္ဂလာပါ | Hello | greeting | Exists as `mingalarbar.ts` / app id `hello` |
-| 3 | `src/animation/clips/fine.ts` | `fine` | ကောင်းပါတယ် | Fine / good | greeting | |
-| 4 | `src/animation/clips/not_very_well.ts` | `not_very_well` | သိပ်မကောင်းဘူး | Not very well | greeting | |
-| 5 | `src/animation/clips/not_good.ts` | `not_good` | မကောင်းဘူး | Not good | greeting | |
-| 6 | `src/animation/clips/age.ts` | `age` | အသက် | Age | question | |
-| 7 | `src/animation/clips/how_much.ts` | `how_much` | ဘယ်လောက် | How much | question | |
-| 8 | `src/animation/clips/num_0.ts` | `num_0` | 0 | Zero | number | |
-| 9 | `src/animation/clips/num_1.ts` | `num_1` | 1 | One | number | |
-| 10 | `src/animation/clips/num_2.ts` | `num_2` | 2 | Two | number | |
-| 11 | `src/animation/clips/num_3.ts` | `num_3` | 3 | Three | number | |
-| 12 | `src/animation/clips/num_4.ts` | `num_4` | 4 | Four | number | |
-| 13 | `src/animation/clips/num_5.ts` | `num_5` | 5 | Five | number | App already has `five` in `demoSigns.ts` |
-| 14 | `src/animation/clips/num_6.ts` | `num_6` | 6 | Six | number | |
-| 15 | `src/animation/clips/num_7.ts` | `num_7` | 7 | Seven | number | |
-| 16 | `src/animation/clips/num_8.ts` | `num_8` | 8 | Eight | number | |
-| 17 | `src/animation/clips/num_9.ts` | `num_9` | 9 | Nine | number | |
-| 18 | `src/animation/clips/num_10.ts` | `num_10` | 10 | Ten | number | |
-| 19 | `src/animation/clips/kachin.ts` | `kachin` | ကချင် | Kachin | region | |
-| 20 | `src/animation/clips/kayah.ts` | `kayah` | ကယား | Kayah | region | |
-| 21 | `src/animation/clips/kayin.ts` | `kayin` | ကရင် | Kayin | region | |
-| 22 | `src/animation/clips/chin.ts` | `chin` | ချင်း | Chin | region | |
-| 23 | `src/animation/clips/mon.ts` | `mon` | မွန် | Mon | region | |
-| 24 | `src/animation/clips/rakhine.ts` | `rakhine` | ရခိုင် | Rakhine | region | |
-| 25 | `src/animation/clips/shan.ts` | `shan` | ရှမ်း | Shan | region | |
-| 26 | `src/animation/clips/sagaing.ts` | `sagaing` | စစ်ကိုင်း | Sagaing | region | |
-| 27 | `src/animation/clips/mandalay.ts` | `mandalay` | မန္တလေး | Mandalay | region | |
-| 28 | `src/animation/clips/magway.ts` | `magway` | မကွေး | Magway | region | |
-| 29 | `src/animation/clips/bago.ts` | `bago` | ပဲခူး | Bago | region | |
-| 30 | `src/animation/clips/yangon.ts` | `yangon` | ရန်ကုန် | Yangon | region | |
-| 31 | `src/animation/clips/ayeyarwady.ts` | `ayeyarwady` | ဧရာဝတီ | Ayeyarwady | region | |
-| 32 | `src/animation/clips/tanintharyi.ts` | `tanintharyi` | တနင်္သာရီ | Tanintharyi | region | |
-| 33 | `src/animation/clips/naypyidaw.ts` | `naypyidaw` | နေပြည်တော် | Nay Pyi Taw | region | |
-| 34 | `src/animation/clips/finished.ts` | `finished` | ပြီး | Finished | time | Exists in `demoSigns.ts` |
-
-### Animator 2 — create `src/animation/clips/<id>.ts`
-
-| # | File to create | Sign id | Myanmar | English | Category | Notes |
-|---|---|---|---|---|---|---|
-| 35 | `src/animation/clips/not_finished_yet.ts` | `not_finished_yet` | မပြီးသေးဘူး | Not finished yet | time | |
-| 36 | `src/animation/clips/doctor.ts` | `doctor` | ဆရာဝန် | Doctor | people | |
-| 37 | `src/animation/clips/nurse.ts` | `nurse` | သူနာပြု | Nurse | people | |
-| 38 | `src/animation/clips/meet.ts` | `meet` | တွေ့ | Meet / see | action | |
-| 39 | `src/animation/clips/go.ts` | `go` | သွား | Go | action | |
-| 40 | `src/animation/clips/father.ts` | `father` | အဖေ | Father | family | |
-| 41 | `src/animation/clips/mother.ts` | `mother` | အမေ | Mother | family | |
-| 42 | `src/animation/clips/older_sister.ts` | `older_sister` | အစ်မ | Older sister | family | |
-| 43 | `src/animation/clips/younger_brother.ts` | `younger_brother` | ညီ | Younger brother | family | |
-| 44 | `src/animation/clips/older_brother.ts` | `older_brother` | အစ်ကို | Older brother | family | |
-| 45 | `src/animation/clips/tomorrow.ts` | `tomorrow` | မနက်ဖြန် | Tomorrow | time | |
-| 46 | `src/animation/clips/day_after_tomorrow.ts` | `day_after_tomorrow` | သန်ဘက်ခါ | Day after tomorrow | time | |
-| 47 | `src/animation/clips/hour.ts` | `hour` | နာရီ | Hour / clock | time | |
-| 48 | `src/animation/clips/time.ts` | `time` | အချိန် | Time | time | |
-| 49 | `src/animation/clips/ministry_of_health.ts` | `ministry_of_health` | ကျန်းမာရေးဝန်ကြီးဌာန | Ministry of Health | health | |
-| 50 | `src/animation/clips/severe.ts` | `severe` | အပြင်းအထန် | Severe | health | |
-| 51 | `src/animation/clips/el_nino.ts` | `el_nino` | အယ်လ်နီညို | El Nino | other | |
-| 52 | `src/animation/clips/hundred.ts` | `hundred` | ဟန်းဒရက် | Hundred | number | |
-| 53 | `src/animation/clips/pound.ts` | `pound` | ပေါင် | Pound (weight) | measure | |
-| 54 | `src/animation/clips/stomach_ache.ts` | `stomach_ache` | အစာအိမ်နာ | Stomach ache | symptom | Exists in `demoSigns.ts` |
-| 55 | `src/animation/clips/toothache.ts` | `toothache` | သွားကိုက် | Toothache | symptom | |
-| 56 | `src/animation/clips/fever.ts` | `fever` | အဖျား | Fever | symptom | |
-| 57 | `src/animation/clips/cough.ts` | `cough` | ချောင်းဆိုး | Cough | symptom | |
-| 58 | `src/animation/clips/medicine.ts` | `medicine` | ဆေး | Medicine | health | Exists in `demoSigns.ts` |
-| 59 | `src/animation/clips/allergic.ts` | `allergic` | မတည့် | Allergic | health | |
-| 60 | `src/animation/clips/have.ts` | `have` | ရှိတယ် | Have | answer | |
-| 61 | `src/animation/clips/dont_have.ts` | `dont_have` | မရှိပါ | Don't have | answer | |
-| 62 | `src/animation/clips/drink.ts` | `drink` | သောက် | Drink | action | Exists in `demoSigns.ts` |
-| 63 | `src/animation/clips/eat.ts` | `eat` | စား | Eat | action | Exists in `demoSigns.ts` |
-| 64 | `src/animation/clips/minute.ts` | `minute` | မိနစ် | Minute | time | Exists in `demoSigns.ts` |
-| 65 | `src/animation/clips/avoid.ts` | `avoid` | ရှောင် | Avoid | action | |
-| 66 | `src/animation/clips/disease.ts` | `disease` | ရောဂါ | Disease | health | |
-| 67 | `src/animation/clips/lung.ts` | `lung` | အဆုတ် | Lung | body | |
-
-### Animator 3 — create `src/animation/clips/<id>.ts`
-
-| # | File to create | Sign id | Myanmar | English | Category | Notes |
-|---|---|---|---|---|---|---|
-| 68 | `src/animation/clips/heart.ts` | `heart` | နှလုံး | Heart | body | |
-| 69 | `src/animation/clips/aids.ts` | `aids` | AIDS | AIDS | disease | |
-| 70 | `src/animation/clips/diarrhea.ts` | `diarrhea` | ဝမ်းရောဂါ | Diarrhea | disease | |
-| 71 | `src/animation/clips/asthma.ts` | `asthma` | ရင်ကြပ်ပန်းနာရောဂါ | Asthma | disease | |
-| 72 | `src/animation/clips/brain.ts` | `brain` | ဦးနှောက် | Brain | body | |
-| 73 | `src/animation/clips/throat.ts` | `throat` | လည်ချောင်း | Throat | body | |
-| 74 | `src/animation/clips/muscle.ts` | `muscle` | ကြွက်သား | Muscle | body | |
-| 75 | `src/animation/clips/liver.ts` | `liver` | အသည်း | Liver | body | |
-| 76 | `src/animation/clips/small_intestine.ts` | `small_intestine` | အူသိမ် | Small intestine | body | |
-| 77 | `src/animation/clips/large_intestine.ts` | `large_intestine` | အူမကြီး | Large intestine | body | |
-| 78 | `src/animation/clips/how.ts` | `how` | ဘယ်လို | How | question | Exists in `demoSigns.ts` |
-| 79 | `src/animation/clips/thank_you.ts` | `thank_you` | ကျေးဇူးတင်ပါတယ် | Thank you | greeting | Exists in `signs.ts` |
-| 80 | `src/animation/clips/please.ts` | `please` | ကျေးဇူးပြု | Please | greeting | Exists in `signs.ts` |
-| 81 | `src/animation/clips/help.ts` | `help` | ကူညီ | Help | action | Exists in `signs.ts` |
-| 82 | `src/animation/clips/sick.ts` | `sick` | နေမကောင်း | Sick | health | Exists as `src/animation/sick.ts` |
-| 83 | `src/animation/clips/headache.ts` | `headache` | ခေါင်းကိုက် | Headache | symptom | Exists as `src/animation/headache.ts` |
-| 84 | `src/animation/clips/what_happened.ts` | `what_happened` | ဘာဖြစ်လို့လဲ | What happened | question | Exists in `demoSigns.ts` |
-| 85 | `src/animation/clips/yes.ts` | `yes` | ဟုတ်ကဲ့ | Yes | answer | Planned in `greetingInput.ts`, no clip yet |
-| 86 | `src/animation/clips/no.ts` | `no` | မဟုတ်ပါ | No | answer | No clip yet |
-| 87 | `src/animation/clips/hospital.ts` | `hospital` | ဆေးရုံ | Hospital | people | No clip yet |
-| 88 | `src/animation/clips/pain.ts` | `pain` | နာကျင် | Pain | symptom | No clip yet |
-| 89 | `src/animation/clips/water.ts` | `water` | ရေ | Water | other | No clip yet |
-| 90 | `src/animation/clips/toilet.ts` | `toilet` | အိမ်သာ | Toilet | other | No clip yet |
-| 91 | `src/animation/clips/name.ts` | `name` | နာမည် | Name | people | No clip yet |
-| 92 | `src/animation/clips/you.ts` | `you` | သင် | You | people | No clip yet |
-| 93 | *add when the word list is ready* | | | | | Do not invent an id |
-| 94 | *add when the word list is ready* | | | | | |
-| 95 | *add when the word list is ready* | | | | | |
-| 96 | *add when the word list is ready* | | | | | |
-| 97 | *add when the word list is ready* | | | | | |
-| 98 | *add when the word list is ready* | | | | | |
-| 99 | *add when the word list is ready* | | | | | |
-| 100 | *add when the word list is ready* | | | | | |
-
-Signs 1–78 match `msl77_signs.py` (do not rename those ids). Signs 79–92 are extra clinic words the chat UI already knows. Signs 93–100 stay empty until you add them at the **end** of `msl77_signs.py` — never insert in the middle.
-
----
-
-## Git (so three people do not overwrite each other)
-
-- One branch per person is enough, for example `anim/person-1`.
-- Commit often: one sign per commit is easiest to review (`Add fever 3D clip`).
-- Never rewrite someone else’s `clips/*.ts` file.
-- Pull before you touch `signs.ts`, `greetingInput.ts`, or `translation.ts`.
-
-Header to paste at the top of every new clip:
-
-```ts
-/**
- * Animator: Aung
- * Sign id:  fever
- * Myanmar:  အဖျား
- * English:  Fever
- */
-```
-
----
-
-## Checklist before you say a sign is done
-
-- [ ] File name is the sign id, lowercase, no spaces
-- [ ] Starts and ends at rest
-- [ ] Preview URL loops the clip
-- [ ] Registered in `signs.ts`, `greetingInput.ts`, and `SIGN_LABELS`
-- [ ] Typed Myanmar text in the app plays this clip (or preview works)
-- [ ] A signer has looked at handshape and timing
+The app's earlier hand-made clips (I, hello, 5, headache, medicine, drink, eat, …) are unchanged.

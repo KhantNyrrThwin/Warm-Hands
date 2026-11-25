@@ -89,13 +89,14 @@ SIGNS: list[tuple[str, str, str, str]] = [
     ("large_intestine", "အူမကြီး", "Large intestine", "body"),
     # DEMO clinic conversation: ဘယ်လိုသောက်ရမလဲ is signed ဘယ်လို + သောက်.
     ("how", "ဘယ်လို", "How", "question"),
+    ("headache", "ခေါင်းကိုက်", "Headache", "symptom"),
 ]
 
 SIGN_IDS = [s[0] for s in SIGNS]
 SIGN_BY_ID = {s[0]: {"index": i, "id": s[0], "my": s[1], "en": s[2], "category": s[3]}
               for i, s in enumerate(SIGNS)}
 
-assert len(SIGNS) == 78, f"expected 78 signs (77 + demo), found {len(SIGNS)}"
+assert len(SIGNS) == 79, f"expected 79 signs (77 + how + headache), found {len(SIGNS)}"
 assert len(set(SIGN_IDS)) == len(SIGN_IDS), "duplicate sign id"
 
 # ---- Recording settings shared by the collector, the dataset builder and training.

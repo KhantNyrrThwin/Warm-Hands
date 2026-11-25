@@ -9,7 +9,7 @@
     "dev:all": "powershell -ExecutionPolicy Bypass -File start-dev.ps1",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "test": "bun test ./tests/greeting.test.mjs",
+    "test": "tsx --test ./tests/*.test.mjs",
     "preview": "vite preview",
     "dev:clinic": "vite --mode lan"
   },
@@ -32,6 +32,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "tsx": "^4.23.15",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.57.0",
     "vite": "^8.0.1"
